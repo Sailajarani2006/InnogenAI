@@ -100,7 +100,25 @@ class GitHubRepositoryImpl @Inject constructor(
         return buildMap {
             if (code.readme.isNotBlank())         put("README.md",                 code.readme)
             if (code.frontendCode.isNotBlank())   put("frontend/main.js",          code.frontendCode)
-            if (code.backendCode.isNotBlank())    put("backend/server.js",         code.backendCode)
+            if (code.backendCode.isNotBlank()) {
+                put("backend/server.js",         code.backendCode)
+                put("backend/package.json",      """
+                    {
+                      "name": "backend",
+                      "version": "1.0.0",
+                      "main": "server.js",
+                      "scripts": {
+                        "start": "node server.js"
+                      },
+                      "dependencies": {
+                        "express": "^4.18.2",
+                        "cors": "^2.8.5",
+                        "dotenv": "^16.3.1",
+                        "pg": "^8.11.3"
+                      }
+                    }
+                """.trimIndent())
+            }
             if (code.databaseSchema.isNotBlank()) put("database/schema.sql",       code.databaseSchema)
             if (code.dockerConfig.isNotBlank())   put("Dockerfile",                code.dockerConfig)
             if (code.apiDocs.isNotBlank())        put("docs/API.md",               code.apiDocs)

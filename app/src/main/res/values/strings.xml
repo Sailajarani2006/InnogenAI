@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">InnoGen AI Pro</string>
+    <string name="app_tagline">Turn Ideas into Apps Instantly</string>
+
+    <!-- Auth -->
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="continue_with_google">Continue with Google</string>
+
+    <!-- Dashboard -->
+    <string name="describe_idea">Describe your app idea…</string>
+    <string name="generate_app">Generate App</string>
+    <string name="my_projects">My Projects</string>
+    <string name="recent_projects">Recent Projects</string>
+
+    <!-- Generation -->
+    <string name="ai_thinking">AI is building your app…</string>
+
+    <string name="default_web_client_id">556742587384-iseh4egfa6m5tr99fhr2nke9vtn80mbh.apps.googleusercontent.com</string>
+</resources>

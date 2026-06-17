@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude API keys and tokens from backups -->
+    <exclude domain="sharedpref" path="innogen_prefs.xml" />
+    <exclude domain="database" path="innogen_db" />
+</full-backup-content>

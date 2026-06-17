@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "556742587384",
+    "project_id": "innogenai",
+    "storage_bucket": "innogenai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556742587384:android:c1ce393b70e2627e281c0d",
+        "android_client_info": {
+          "package_name": "com.innogen.aipro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "556742587384-iseh4egfa6m5tr99fhr2nke9vtn80mbh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2ZUarRUOu29P9akgJ0jiUHfg1yXCNvNY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556742587384-iseh4egfa6m5tr99fhr2nke9vtn80mbh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

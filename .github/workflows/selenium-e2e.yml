@@ -1,0 +1,76 @@
+name: Selenium E2E Testing Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (For serving the frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies & Build Project
+        run: |
+          # If package.json is in the root, otherwise change directory first
+          if [ -f "package.json" ]; then
+            npm install
+            npm run build
+          else
+            echo "No package.json found in root, assuming dist/ is already committed."
+          fi
+
+      - name: Serve frontend 'dist' folder in background
+        run: |
+          npm install -g serve
+          # Change "dist" to the actual build output directory if needed
+          serve -s dist -l 8080 &
+          # Wait for server to start
+          sleep 5
+          curl http://127.0.0.1:8080 || echo "Failed to connect to local server"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Test Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests/requirements.txt
+
+      - name: Install Chrome and ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Run Selenium Tests (300+ Cases)
+        env:
+          TEST_URL: http://127.0.0.1:8080
+        run: |
+          # Run pytest and use the custom excel_reporter hook we created
+          export DISPLAY=:99
+          chromedriver --url-base=/wd/hub &
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+          
+          # Run the test suite
+          pytest tests/test_e2e_suite.py -p tests.excel_reporter -v
+
+      - name: Upload Excel Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Selenium_E2E_Test_Report
+          path: E2E_Test_Report_PancreaScan_*.xlsx
+          retention-days: 14

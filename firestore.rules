@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// FIX-08 (MED-002): Enforce Firestore Security Rules
+// Deploy with: firebase deploy --only firestore:rules
+//
+// Principle: deny-by-default. Every collection explicitly grants
+// only the minimum permissions required by the application.
+//
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Shared helper functions ──────────────────────────────────────────────
+
+    // User is signed in via Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Request is from the owner of this document
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Incoming data contains the authenticated user's UID
+    function writingAsOwner() {
+      return isAuthenticated()
+          && request.resource.data.userId == request.auth.uid;
+    }
+
+    // ── Users collection ────────────────────────────────────────────────────
+    // Each user can read/write only their own profile document.
+    match /users/{userId} {
+      allow read  : if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.keys().hasAll(['email', 'uid']);
+      allow update: if isOwner(userId);
+      allow delete: if false; // Users cannot delete their own account document
+    }
+
+    // ── Projects collection ─────────────────────────────────────────────────
+    // Users can CRUD only their own projects.
+    // The userId field must always match the authenticated UID.
+    match /projects/{projectId} {
+      allow read  : if isAuthenticated()
+                    && resource.data.userId == request.auth.uid;
+      allow create: if writingAsOwner()
+                    && request.resource.data.keys().hasAll(['title', 'userId', 'createdAt']);
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid; // cannot change owner
+      allow delete: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Usage tracking ──────────────────────────────────────────────────────
+    // Tracks AI API call counts per user per day. Only the owning user
+    // can read; writes only via server (Cloud Functions) in production.
+    // For client-only setup, allow authenticated writes with rate-limit fields.
+    match /usage/{userId} {
+      allow read  : if isOwner(userId);
+      allow write : if isOwner(userId)
+                    && request.resource.data.keys().hasAll(['date', 'count'])
+                    && request.resource.data.count is int
+                    && request.resource.data.count <= 50; // max 50 generations/day
+    }
+
+    // ── Deny everything else ────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

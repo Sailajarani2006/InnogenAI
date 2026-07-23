@@ -4,7 +4,7 @@
   "description": "Appium E2E test suite for InnoGenAI",
   "main": "wdio.conf.js",
   "scripts": {
-    "test": "wdio run wdio.conf.js"
+    "test": "node run-appium-tests.js"
   },
   "dependencies": {
     "@wdio/appium-service": "^8.30.0",

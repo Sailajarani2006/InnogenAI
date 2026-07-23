@@ -34,7 +34,10 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            // FIX-04 (MED-001): Enable R8 code shrinking and obfuscation in release builds.
+            // This prevents easy reverse-engineering of class names, logic, and hardcoded values.
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -113,6 +116,13 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.6.0'
     implementation 'androidx.room:room-ktx:2.6.0'
     kapt 'androidx.room:room-compiler:2.6.0'
+
+    // FIX-09 (MED-005): Room DB encryption with SQLCipher
+    implementation 'net.zetetic:android-database-sqlcipher:4.5.4'
+    implementation 'androidx.sqlite:sqlite-ktx:2.4.0'
+
+    // FIX-03 (CRIT-002): EncryptedSharedPreferences for secure key/token storage
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
 
     // Lottie animations
     implementation 'com.airbnb.android:lottie-compose:6.1.0'

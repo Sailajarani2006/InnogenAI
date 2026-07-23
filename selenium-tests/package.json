@@ -1,0 +1,13 @@
+{
+  "name": "innogenai-selenium-tests",
+  "version": "1.0.0",
+  "description": "Selenium E2E test suite for InnoGenAI",
+  "main": "tests/login-tests.js",
+  "scripts": {
+    "test": "node tests/login-tests.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "selenium-webdriver": "^4.20.0"
+  }
+}

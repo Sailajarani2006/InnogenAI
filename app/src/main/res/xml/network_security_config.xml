@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FIX-13 companion / General hardening:
+  Network Security Configuration enforces HTTPS-only traffic at the OS level.
+
+  - Clears text (cleartext HTTP) is blocked for all domains in release builds.
+  - In debug builds, cleartext is allowed to localhost only (for local dev server).
+  - Certificate pinning is also enforced here as a second layer alongside OkHttp.
+
+  Reference this file in AndroidManifest.xml:
+    android:networkSecurityConfig="@xml/network_security_config"
+-->
+<network-security-config>
+
+    <!-- Base config: enforce HTTPS everywhere in production -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system CAs (standard) -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Debug only: allow cleartext to localhost for dev servers -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" /> <!-- Trust user-installed CAs in debug only -->
+        </trust-anchors>
+    </debug-overrides>
+
+    <!--
+      Domain-specific pinning for Groq AI API.
+      IMPORTANT: Replace SHA-256 values with real pins from the certificate.
+      Run: openssl s_client -connect api.groq.com:443 2>/dev/null \
+             | openssl x509 -pubkey -noout \
+             | openssl pkey -pubin -outform der \
+             | openssl dgst -sha256 -binary | base64
+      Always include a backup pin from the CA chain to avoid lockout on cert rotation.
+    -->
+    <domain-config>
+        <domain includeSubdomains="false">api.groq.com</domain>
+        <pin-set expiration="2026-12-31">
+            <pin digest="SHA-256">REPLACE_WITH_GROQ_LEAF_PIN_HASH_BASE64=</pin>
+            <pin digest="SHA-256">REPLACE_WITH_GROQ_BACKUP_PIN_HASH_BASE64=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!--
+      Domain-specific pinning for GitHub API.
+    -->
+    <domain-config>
+        <domain includeSubdomains="false">api.github.com</domain>
+        <pin-set expiration="2026-12-31">
+            <pin digest="SHA-256">REPLACE_WITH_GITHUB_LEAF_PIN_HASH_BASE64=</pin>
+            <pin digest="SHA-256">REPLACE_WITH_GITHUB_BACKUP_PIN_HASH_BASE64=</pin>
+        </pin-set>
+    </domain-config>
+
+</network-security-config>

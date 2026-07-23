@@ -9,7 +9,7 @@ import com.innogen.aipro.data.local.entities.ProjectEntity
 
 @Database(
     entities  = [ProjectEntity::class],
-    version   = 1,
+    version   = 2,          // FIX-09 (MED-005): bumped for SQLCipher migration
     exportSchema = false
 )
 @TypeConverters(ProjectConverters::class)

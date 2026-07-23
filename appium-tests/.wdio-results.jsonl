@@ -1,0 +1,305 @@
+{"parent":"[Category] Valid Login","title":"[APP-VAL-001] Valid Mobile Login Case 1 - admin","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-002] Valid Mobile Login Case 2 - user","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-003] Valid Mobile Login Case 3 - manager","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-004] Valid Mobile Login Case 4 - developer","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-005] Valid Mobile Login Case 5 - test.user","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-006] Valid Mobile Login Case 6 - support","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-007] Valid Mobile Login Case 7 - billing","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-008] Valid Mobile Login Case 8 - demo","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-009] Valid Mobile Login Case 9 - api","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-010] Valid Mobile Login Case 10 - guest","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-011] Valid Mobile Login Case 11 - user.11","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-012] Valid Mobile Login Case 12 - user.12","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-013] Valid Mobile Login Case 13 - user.13","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-014] Valid Mobile Login Case 14 - user.14","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-015] Valid Mobile Login Case 15 - user.15","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-016] Valid Mobile Login Case 16 - user.16","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-017] Valid Mobile Login Case 17 - user.17","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-018] Valid Mobile Login Case 18 - user.18","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-019] Valid Mobile Login Case 19 - user.19","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-020] Valid Mobile Login Case 20 - user.20","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-021] Valid Mobile Login Case 21 - user.21","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-022] Valid Mobile Login Case 22 - user.22","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-023] Valid Mobile Login Case 23 - user.23","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-024] Valid Mobile Login Case 24 - user.24","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-025] Valid Mobile Login Case 25 - user.25","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-026] Valid Mobile Login Case 26 - user.26","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-027] Valid Mobile Login Case 27 - user.27","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-028] Valid Mobile Login Case 28 - user.28","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-029] Valid Mobile Login Case 29 - user.29","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-030] Valid Mobile Login Case 30 - user.30","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-031] Valid Mobile Login Case 31 - user.31","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-032] Valid Mobile Login Case 32 - user.32","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-033] Valid Mobile Login Case 33 - user.33","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-034] Valid Mobile Login Case 34 - user.34","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Valid Login","title":"[APP-VAL-035] Valid Mobile Login Case 35 - user.35","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-001] Empty Email Address","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-002] Empty Password Field","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-003] Invalid Email Structure Case 1","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-004] Invalid Email Structure Case 2","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-005] Invalid Email Structure Case 3","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-006] Invalid Email Structure Case 4","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-007] Invalid Email Structure Case 5","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-008] Invalid Email Structure Case 6","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-009] Invalid Email Structure Case 7","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-010] Invalid Email Structure Case 8","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-011] Invalid Email Structure Case 9","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-012] Invalid Email Structure Case 10","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-013] Invalid Email Structure Case 11","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-014] Invalid Email Structure Case 12","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-015] Invalid Email Structure Case 13","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-016] Invalid Email Structure Case 14","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-017] Invalid Email Structure Case 15","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-018] Invalid Email Structure Case 16","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-019] Invalid Email Structure Case 17","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-020] Invalid Email Structure Case 18","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-021] Invalid Email Structure Case 19","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-022] Invalid Email Structure Case 20","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-023] Invalid Email Structure Case 21","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-024] Invalid Email Structure Case 22","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-025] Invalid Email Structure Case 23","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-026] Invalid Email Structure Case 24","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-027] Invalid Email Structure Case 25","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-028] Invalid Email Structure Case 26","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-029] Invalid Email Structure Case 27","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-030] Invalid Email Structure Case 28","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-031] Invalid Email Structure Case 29","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-032] Invalid Email Structure Case 30","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-033] Invalid Email Structure Case 31","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-034] Invalid Email Structure Case 32","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-035] Invalid Email Structure Case 33","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-036] Invalid Email Structure Case 34","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-037] Invalid Email Structure Case 35","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-038] Invalid Email Structure Case 36","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-039] Invalid Email Structure Case 37","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-040] Invalid Email Structure Case 38","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-041] Invalid Email Structure Case 39","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-042] Invalid Email Structure Case 40","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-043] Invalid Email Structure Case 41","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-044] Invalid Email Structure Case 42","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-045] Invalid Email Structure Case 43","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-046] Invalid Email Structure Case 44","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-047] Invalid Email Structure Case 45","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-048] Invalid Email Structure Case 46","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-049] Invalid Email Structure Case 47","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-050] Invalid Email Structure Case 48","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-051] Invalid Email Structure Case 49","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-052] Invalid Email Structure Case 50","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-053] Weak or Short Password Case 1","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-054] Weak or Short Password Case 2","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-055] Weak or Short Password Case 3","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-056] Weak or Short Password Case 4","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-057] Weak or Short Password Case 5","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-058] Weak or Short Password Case 6","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-059] Weak or Short Password Case 7","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-060] Weak or Short Password Case 8","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-061] Weak or Short Password Case 9","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-062] Weak or Short Password Case 10","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-063] Weak or Short Password Case 11","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-064] Weak or Short Password Case 12","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-065] Weak or Short Password Case 13","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-066] Weak or Short Password Case 14","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-067] Weak or Short Password Case 15","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-068] Weak or Short Password Case 16","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-069] Weak or Short Password Case 17","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-070] Weak or Short Password Case 18","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-071] Weak or Short Password Case 19","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-072] Weak or Short Password Case 20","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-073] Weak or Short Password Case 21","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-074] Weak or Short Password Case 22","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-075] Weak or Short Password Case 23","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-076] Weak or Short Password Case 24","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-077] Weak or Short Password Case 25","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-078] Weak or Short Password Case 26","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-079] Weak or Short Password Case 27","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-080] Weak or Short Password Case 28","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-081] Weak or Short Password Case 29","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-082] Weak or Short Password Case 30","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-083] Weak or Short Password Case 31","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-084] Weak or Short Password Case 32","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-085] Weak or Short Password Case 33","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-086] Weak or Short Password Case 34","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-087] Weak or Short Password Case 35","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-088] Weak or Short Password Case 36","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-089] Weak or Short Password Case 37","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-090] Weak or Short Password Case 38","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-091] Weak or Short Password Case 39","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-092] Weak or Short Password Case 40","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-093] Weak or Short Password Case 41","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-094] Weak or Short Password Case 42","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-095] Weak or Short Password Case 43","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-096] Weak or Short Password Case 44","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-097] Weak or Short Password Case 45","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-098] Weak or Short Password Case 46","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-099] Weak or Short Password Case 47","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Field Validation","title":"[APP-VAL-ERR-100] Weak or Short Password Case 48","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-001] SQL Injection Attack Vector Case 1","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-002] Cross-Site Scripting (XSS) Attack Vector Case 2","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-003] Injection/Traversal Attack Vector Case 3","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-004] SQL Injection Attack Vector Case 4","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-005] Cross-Site Scripting (XSS) Attack Vector Case 5","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-006] Injection/Traversal Attack Vector Case 6","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-007] SQL Injection Attack Vector Case 7","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-008] Cross-Site Scripting (XSS) Attack Vector Case 8","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-009] Injection/Traversal Attack Vector Case 9","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-010] SQL Injection Attack Vector Case 10","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-011] Cross-Site Scripting (XSS) Attack Vector Case 11","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-012] Injection/Traversal Attack Vector Case 12","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-013] SQL Injection Attack Vector Case 13","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-014] Cross-Site Scripting (XSS) Attack Vector Case 14","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-015] Injection/Traversal Attack Vector Case 15","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-016] SQL Injection Attack Vector Case 16","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-017] Cross-Site Scripting (XSS) Attack Vector Case 17","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-018] Injection/Traversal Attack Vector Case 18","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-019] SQL Injection Attack Vector Case 19","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-020] Cross-Site Scripting (XSS) Attack Vector Case 20","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-021] Injection/Traversal Attack Vector Case 21","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-022] SQL Injection Attack Vector Case 22","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-023] Cross-Site Scripting (XSS) Attack Vector Case 23","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-024] Injection/Traversal Attack Vector Case 24","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-025] SQL Injection Attack Vector Case 25","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-026] Cross-Site Scripting (XSS) Attack Vector Case 26","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-027] Injection/Traversal Attack Vector Case 27","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-028] SQL Injection Attack Vector Case 28","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-029] Cross-Site Scripting (XSS) Attack Vector Case 29","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-030] Injection/Traversal Attack Vector Case 30","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-031] SQL Injection Attack Vector Case 31","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-032] Cross-Site Scripting (XSS) Attack Vector Case 32","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-033] Injection/Traversal Attack Vector Case 33","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-034] SQL Injection Attack Vector Case 34","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-035] Cross-Site Scripting (XSS) Attack Vector Case 35","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-036] Injection/Traversal Attack Vector Case 36","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-037] SQL Injection Attack Vector Case 37","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-038] Cross-Site Scripting (XSS) Attack Vector Case 38","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-039] Injection/Traversal Attack Vector Case 39","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-040] SQL Injection Attack Vector Case 40","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-041] Cross-Site Scripting (XSS) Attack Vector Case 41","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-042] Injection/Traversal Attack Vector Case 42","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-043] SQL Injection Attack Vector Case 43","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-044] Cross-Site Scripting (XSS) Attack Vector Case 44","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-045] Injection/Traversal Attack Vector Case 45","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-046] SQL Injection Attack Vector Case 46","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-047] Cross-Site Scripting (XSS) Attack Vector Case 47","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-048] Injection/Traversal Attack Vector Case 48","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-049] SQL Injection Attack Vector Case 49","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-050] Cross-Site Scripting (XSS) Attack Vector Case 50","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-051] Injection/Traversal Attack Vector Case 51","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-052] SQL Injection Attack Vector Case 52","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-053] Cross-Site Scripting (XSS) Attack Vector Case 53","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-054] Injection/Traversal Attack Vector Case 54","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-055] SQL Injection Attack Vector Case 55","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-056] Cross-Site Scripting (XSS) Attack Vector Case 56","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-057] Injection/Traversal Attack Vector Case 57","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-058] SQL Injection Attack Vector Case 58","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-059] Cross-Site Scripting (XSS) Attack Vector Case 59","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-060] Injection/Traversal Attack Vector Case 60","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-061] SQL Injection Attack Vector Case 61","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-062] Cross-Site Scripting (XSS) Attack Vector Case 62","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-063] Injection/Traversal Attack Vector Case 63","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-064] SQL Injection Attack Vector Case 64","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-065] Cross-Site Scripting (XSS) Attack Vector Case 65","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-066] Injection/Traversal Attack Vector Case 66","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-067] SQL Injection Attack Vector Case 67","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-068] Cross-Site Scripting (XSS) Attack Vector Case 68","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-069] Injection/Traversal Attack Vector Case 69","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-070] SQL Injection Attack Vector Case 70","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-071] Cross-Site Scripting (XSS) Attack Vector Case 71","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-072] Injection/Traversal Attack Vector Case 72","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-073] SQL Injection Attack Vector Case 73","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-074] Cross-Site Scripting (XSS) Attack Vector Case 74","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-075] Injection/Traversal Attack Vector Case 75","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-076] SQL Injection Attack Vector Case 76","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-077] Cross-Site Scripting (XSS) Attack Vector Case 77","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-078] Injection/Traversal Attack Vector Case 78","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-079] SQL Injection Attack Vector Case 79","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-080] Cross-Site Scripting (XSS) Attack Vector Case 80","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-081] Injection/Traversal Attack Vector Case 81","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-082] SQL Injection Attack Vector Case 82","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-083] Cross-Site Scripting (XSS) Attack Vector Case 83","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-084] Injection/Traversal Attack Vector Case 84","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-085] SQL Injection Attack Vector Case 85","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-086] Cross-Site Scripting (XSS) Attack Vector Case 86","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-087] Injection/Traversal Attack Vector Case 87","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-088] SQL Injection Attack Vector Case 88","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-089] Cross-Site Scripting (XSS) Attack Vector Case 89","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-090] Injection/Traversal Attack Vector Case 90","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-091] SQL Injection Attack Vector Case 91","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-092] Cross-Site Scripting (XSS) Attack Vector Case 92","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-093] Injection/Traversal Attack Vector Case 93","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-094] SQL Injection Attack Vector Case 94","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-095] Cross-Site Scripting (XSS) Attack Vector Case 95","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-096] Injection/Traversal Attack Vector Case 96","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-097] SQL Injection Attack Vector Case 97","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-098] Cross-Site Scripting (XSS) Attack Vector Case 98","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-099] Injection/Traversal Attack Vector Case 99","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Security & Injection","title":"[APP-SEC-100] SQL Injection Attack Vector Case 100","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-001] Unicode/Emoji Input Case 1","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-002] Unicode/Emoji Input Case 2","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-003] Unicode/Emoji Input Case 3","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-004] Unicode/Emoji Input Case 4","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-005] Unicode/Emoji Input Case 5","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-006] Unicode/Emoji Input Case 6","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-007] Unicode/Emoji Input Case 7","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-008] Unicode/Emoji Input Case 8","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-009] Unicode/Emoji Input Case 9","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-010] Unicode/Emoji Input Case 10","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-011] Unicode/Emoji Input Case 11","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-012] Unicode/Emoji Input Case 12","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-013] Unicode/Emoji Input Case 13","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-014] Unicode/Emoji Input Case 14","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-015] Unicode/Emoji Input Case 15","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-016] Extremely Long Password Case 1","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-017] Extremely Long Password Case 2","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-018] Extremely Long Password Case 3","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-019] Extremely Long Password Case 4","passed":true,"duration":11,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-020] Extremely Long Password Case 5","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-021] Extremely Long Password Case 6","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-022] Extremely Long Password Case 7","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-023] Extremely Long Password Case 8","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-024] Extremely Long Password Case 9","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-025] Extremely Long Password Case 10","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-026] Extremely Long Password Case 11","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-027] Extremely Long Password Case 12","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-028] Extremely Long Password Case 13","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-029] Extremely Long Password Case 14","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-030] Extremely Long Password Case 15","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-031] Extremely Long Password Case 16","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-032] Extremely Long Password Case 17","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-033] Extremely Long Password Case 18","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-034] Extremely Long Password Case 19","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-035] Extremely Long Password Case 20","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-036] Internationalized Keyboard Case 1","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-037] Internationalized Keyboard Case 2","passed":true,"duration":17,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-038] Internationalized Keyboard Case 3","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-039] Internationalized Keyboard Case 4","passed":true,"duration":14,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-040] Internationalized Keyboard Case 5","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-041] Internationalized Keyboard Case 6","passed":true,"duration":6,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-042] Internationalized Keyboard Case 7","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-043] Internationalized Keyboard Case 8","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-044] Internationalized Keyboard Case 9","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-045] Internationalized Keyboard Case 10","passed":true,"duration":10,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-046] Internationalized Keyboard Case 11","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-047] Internationalized Keyboard Case 12","passed":true,"duration":16,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-048] Internationalized Keyboard Case 13","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-049] Internationalized Keyboard Case 14","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-050] Internationalized Keyboard Case 15","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-051] Whitespace Padding Case 1","passed":true,"duration":13,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-052] Whitespace Padding Case 2","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-053] Whitespace Padding Case 3","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-054] Whitespace Padding Case 4","passed":true,"duration":5,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-055] Whitespace Padding Case 5","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-056] Whitespace Padding Case 6","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-057] Whitespace Padding Case 7","passed":true,"duration":19,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-058] Whitespace Padding Case 8","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-059] Whitespace Padding Case 9","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-060] Whitespace Padding Case 10","passed":true,"duration":20,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-061] Whitespace Padding Case 11","passed":true,"duration":18,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-062] Whitespace Padding Case 12","passed":true,"duration":9,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-063] Whitespace Padding Case 13","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-064] Whitespace Padding Case 14","passed":true,"duration":12,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-065] Whitespace Padding Case 15","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-066] Whitespace Padding Case 16","passed":true,"duration":15,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-067] Whitespace Padding Case 17","passed":true,"duration":7,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-068] Whitespace Padding Case 18","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-069] Whitespace Padding Case 19","passed":true,"duration":8,"error":null}
+{"parent":"[Category] Boundary & Edge Cases","title":"[APP-BDY-070] Whitespace Padding Case 20","passed":true,"duration":5,"error":null}

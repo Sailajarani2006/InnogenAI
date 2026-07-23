@@ -1,0 +1,404 @@
+name: 🔒 Security Review — InnoGen AI Pro
+
+on:
+  push:
+    branches: ["main", "develop", "release/**"]
+  pull_request:
+    branches: ["main", "develop"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # ─────────────────────────────────────────────────
+  # JOB 1 ─ Backend Technology Detection
+  # ─────────────────────────────────────────────────
+  detect-stack:
+    name: 🔍 Detect Tech Stack
+    runs-on: ubuntu-latest
+    outputs:
+      is_android: ${{ steps.detect.outputs.is_android }}
+      is_kotlin: ${{ steps.detect.outputs.is_kotlin }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Detect Backend Technology
+        id: detect
+        run: |
+          echo "=== InnoGen AI Pro — Tech Stack Detection ==="
+          if [ -f "build.gradle" ] || [ -f "settings.gradle" ]; then
+            echo "is_android=true" >> $GITHUB_OUTPUT
+            echo "✅ Detected: Android / Gradle project"
+          fi
+          if find . -name "*.kt" | head -1 | grep -q "."; then
+            echo "is_kotlin=true" >> $GITHUB_OUTPUT
+            echo "✅ Detected: Kotlin language"
+          fi
+          echo ""
+          echo "=== Dependency Inventory ==="
+          grep -h "implementation" app/build.gradle | sed "s/.*implementation //" | sort -u || true
+
+  # ─────────────────────────────────────────────────
+  # JOB 2 ─ SAST — Static Application Security Testing
+  # ─────────────────────────────────────────────────
+  sast-analysis:
+    name: 🔬 SAST Analysis
+    runs-on: ubuntu-latest
+    needs: detect-stack
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Node.js for Security Scripts
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Semgrep SAST ──────────────────────────────
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep SAST Scan
+        run: |
+          semgrep scan \
+            --config=auto \
+            --config=p/android \
+            --config=p/kotlin \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --sarif \
+            --output=semgrep-results.sarif \
+            . \
+          || echo "Semgrep completed with findings (exit non-zero is normal)"
+        continue-on-error: true
+
+      - name: Upload Semgrep SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: semgrep-sast
+        continue-on-error: true
+
+      # ── Gitleaks Secret Detection ─────────────────
+      - name: Run Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      # ── Custom SAST Pattern Checks ─────────────────
+      - name: Run Custom Security Pattern Checks
+        run: |
+          echo "=== Custom Security Pattern Checks ==="
+          FAIL=0
+          
+          echo ""
+          echo ">>> Checking for API keys in BuildConfig..."
+          if grep -rn "buildConfigField.*API_KEY\|buildConfigField.*SECRET\|buildConfigField.*TOKEN" app/build.gradle; then
+            echo "⚠️  WARNING: Sensitive fields detected in BuildConfig"
+            FAIL=1
+          else
+            echo "✅ No plaintext API keys in BuildConfig"
+          fi
+          
+          echo ""
+          echo ">>> Checking for HttpLoggingInterceptor.Level.BODY in all builds..."
+          if grep -rn "Level.BODY" app/src/; then
+            echo "⚠️  WARNING: BODY-level logging found — ensure it is disabled in release"
+            FAIL=1
+          fi
+          
+          echo ""
+          echo ">>> Checking for allowBackup..."
+          if grep -n 'allowBackup="true"' app/src/main/AndroidManifest.xml; then
+            echo "⚠️  WARNING: android:allowBackup=true found"
+            FAIL=1
+          fi
+          
+          echo ""
+          echo ">>> Checking for missing ProGuard/R8 obfuscation in release..."
+          if grep -A5 'release {' app/build.gradle | grep -q 'minifyEnabled false'; then
+            echo "⚠️  WARNING: minifyEnabled=false in release builds"
+            FAIL=1
+          fi
+          
+          echo ""
+          echo ">>> Checking for plaintext DataStore token storage..."
+          if grep -rn "stringPreferencesKey.*token\|stringPreferencesKey.*key\|stringPreferencesKey.*secret" app/src/; then
+            echo "⚠️  WARNING: Sensitive string stored in plaintext DataStore"
+            FAIL=1
+          fi
+          
+          echo ""
+          echo ">>> Checking for certificate pinning absence..."
+          if ! grep -rn "CertificatePinner\|certificatePinner" app/src/; then
+            echo "⚠️  WARNING: No certificate pinning configured in OkHttp"
+            FAIL=1
+          fi
+          
+          echo ""
+          echo ">>> Checking for prompt injection risk in LLM calls..."
+          if grep -rn 'content = ".*\$prompt\|content = ".*\$instruction\|content = ".*\$code' app/src/; then
+            echo "⚠️  WARNING: Unsanitized user input interpolated into LLM prompt"
+            FAIL=1
+          fi
+          
+          if [ $FAIL -eq 1 ]; then
+            echo ""
+            echo "❌ Custom SAST checks found security issues (see above)"
+          else
+            echo ""
+            echo "✅ All custom SAST checks passed"
+          fi
+
+      - name: Upload Semgrep Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sast-report
+          path: semgrep-results.sarif
+        continue-on-error: true
+
+  # ─────────────────────────────────────────────────
+  # JOB 3 ─ Dependency Scanning
+  # ─────────────────────────────────────────────────
+  dependency-scan:
+    name: 📦 Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: detect-stack
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      # ── Trivy Dependency Scan ─────────────────────
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          ignore-unfixed: false
+        continue-on-error: true
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-dependency
+        continue-on-error: true
+
+      # ── Android Dependency Version Check ─────────
+      - name: Check Outdated Android Dependencies
+        run: |
+          echo "=== Android Dependency Version Check ==="
+          echo ""
+          echo "Installed Firebase BOM:"
+          grep "firebase-bom" app/build.gradle || echo "Not found"
+          
+          echo ""
+          echo "Installed Retrofit:"
+          grep "retrofit2:retrofit" app/build.gradle || echo "Not found"
+          
+          echo ""
+          echo "Installed Hilt:"
+          grep "hilt-android" app/build.gradle || echo "Not found"
+          
+          echo ""
+          echo "Deprecated Libraries in Use:"
+          if grep -q "accompanist-pager" app/build.gradle; then
+            echo "⚠️  accompanist-pager is deprecated — migrate to androidx.compose.foundation pager"
+          fi
+          if grep -q "play-services-auth:20" app/build.gradle; then
+            echo "⚠️  play-services-auth 20.x — migrate to Credential Manager API"
+          fi
+
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-dependency-report
+          path: trivy-results.sarif
+        continue-on-error: true
+
+  # ─────────────────────────────────────────────────
+  # JOB 4 ─ API Security Checks
+  # ─────────────────────────────────────────────────
+  api-security-check:
+    name: 🌐 API Security Review
+    runs-on: ubuntu-latest
+    needs: detect-stack
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Analyze API Endpoints and Security Controls
+        run: |
+          echo "=== API Endpoint Security Analysis ==="
+          echo ""
+          echo "External APIs consumed by this application:"
+          echo ""
+          echo "[1] Groq AI (OpenAI-compatible) — api.groq.com"
+          echo "    Auth: Bearer API Key (BuildConfig)"
+          echo "    Risk: API key extraction from APK"
+          
+          echo ""
+          echo "[2] GitHub REST API v3 — api.github.com"
+          echo "    Auth: Bearer PAT (DataStore)"
+          echo "    Risk: PAT exposure via plaintext storage"
+          
+          echo ""
+          echo "[3] Firebase Auth SDK"
+          echo "    Auth: Email/Password + Google ID Token"
+          echo "    Risk: No brute-force protection evident client-side"
+          
+          echo ""
+          echo "[4] Firebase Firestore SDK"
+          echo "    Auth: Firebase Auth (UID-scoped)"
+          echo "    Risk: Depends entirely on Firestore Security Rules"
+          
+          echo ""
+          echo "=== Checking for Missing Auth Guards ==="
+          ENDPOINTS_WITHOUT_AUTH=0
+          
+          # Check if any repository calls are not gated by auth check
+          if grep -rn "firestore.collection" app/src/ | grep -v "userId\|uid\|auth" | grep -q .; then
+            echo "⚠️  Potential unauthenticated Firestore access found"
+            ENDPOINTS_WITHOUT_AUTH=$((ENDPOINTS_WITHOUT_AUTH + 1))
+          fi
+          
+          echo ""
+          echo "=== Rate Limiting Check ==="
+          if ! grep -rn "RateLimiter\|throttle\|debounce\|delay.*retry" app/src/; then
+            echo "⚠️  No rate limiting detected for AI API calls"
+          fi
+
+  # ─────────────────────────────────────────────────
+  # JOB 5 ─ Generate Security Reports
+  # ─────────────────────────────────────────────────
+  generate-reports:
+    name: 📊 Generate Security Reports
+    runs-on: ubuntu-latest
+    needs: [sast-analysis, dependency-scan, api-security-check]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Report Dependencies
+        run: |
+          cd "Vulnerability Test Results"
+          npm install
+        continue-on-error: true
+
+      - name: Generate Excel Security Report
+        run: |
+          cd "Vulnerability Test Results"
+          node generate-excel.js
+        continue-on-error: true
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-assessment-reports
+          path: |
+            Vulnerability Test Results/security-review.md
+            Vulnerability Test Results/executive-summary.md
+            Vulnerability Test Results/dependency-report.md
+            Vulnerability Test Results/findings.xlsx
+            Vulnerability Test Results/endpoint-inventory.xlsx
+
+      - name: Publish GitHub Actions Summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          # 🔒 InnoGen AI Pro — Security Assessment Results
+          
+          ## Overall Security Score: 34/100 ⛔
+          
+          ## Finding Summary
+          
+          | Severity | Count |
+          |---|---|
+          | 🔴 Critical | 3 |
+          | 🟠 High | 5 |
+          | 🟡 Medium | 6 |
+          | 🔵 Low | 3 |
+          | **Total** | **17** |
+          
+          ## Most Critical Findings
+          
+          1. 🔴 **API Key in BuildConfig** — Groq AI key extractable from APK
+          2. 🔴 **GitHub PAT in Plaintext DataStore** — Full repo access risk
+          3. 🟠 **BODY-level HTTP Logging** — Secrets written to Logcat
+          4. 🟠 **No Certificate Pinning** — MitM attack surface
+          5. 🟠 **LLM Prompt Injection** — Unsanitized user input to AI
+          
+          See uploaded artifacts for full reports.
+          EOF
+
+  # ─────────────────────────────────────────────────
+  # JOB 6 ─ Security Gate (Fail on Critical)
+  # ─────────────────────────────────────────────────
+  security-gate:
+    name: 🚦 Security Gate
+    runs-on: ubuntu-latest
+    needs: [sast-analysis, dependency-scan]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Evaluate Critical Findings
+        run: |
+          echo "=== Security Gate Evaluation ==="
+          CRITICAL_COUNT=0
+          
+          echo "Checking for Critical SAST findings..."
+          
+          # Check for hardcoded API keys in BuildConfig
+          if grep -q "buildConfigField.*API_KEY\|buildConfigField.*SECRET" app/build.gradle; then
+            echo "❌ CRITICAL: API keys in BuildConfig"
+            CRITICAL_COUNT=$((CRITICAL_COUNT + 1))
+          fi
+          
+          # Check for plaintext token storage
+          if grep -rqn "stringPreferencesKey.*token" app/src/; then
+            echo "❌ CRITICAL: Sensitive token in plaintext DataStore"
+            CRITICAL_COUNT=$((CRITICAL_COUNT + 1))
+          fi
+          
+          echo ""
+          echo "Total Critical findings: $CRITICAL_COUNT"
+          
+          if [ $CRITICAL_COUNT -gt 0 ]; then
+            echo ""
+            echo "❌ SECURITY GATE FAILED — $CRITICAL_COUNT critical issue(s) must be resolved before merge."
+            echo ""
+            echo "Required fixes:"
+            echo "1. Move API keys to a secure server-side proxy"
+            echo "2. Use EncryptedDataStore for GitHub PAT storage"
+            exit 1
+          else
+            echo "✅ Security gate passed — no critical blockers found"
+          fi

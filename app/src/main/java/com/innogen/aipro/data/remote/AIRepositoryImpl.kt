@@ -1,6 +1,7 @@
 package com.innogen.aipro.data.remote
 
 import com.google.gson.Gson
+import com.innogen.aipro.BuildConfig
 import com.innogen.aipro.data.remote.api.*
 import com.innogen.aipro.domain.model.*
 import com.innogen.aipro.domain.repository.AIRepository
@@ -46,11 +47,13 @@ Return ONLY the JSON object. Nothing else.
     override suspend fun generateApp(prompt: String): Result<Project> =
         withContext(Dispatchers.IO) {
             try {
+                // FIX-07 (HIGH-003): Sanitize user input before embedding in LLM prompt
+                val safePrompt = sanitizeUserInput(prompt)
                 val request = OpenAIRequest(
                     model = "llama-3.3-70b-versatile",
                     messages = listOf(
                         ChatMessage(role = "system", content = systemPrompt),
-                        ChatMessage(role = "user",   content = "Generate a complete app for: $prompt")
+                        ChatMessage(role = "user",   content = "Generate a complete app for: $safePrompt")
                     )
                 )
                 val response = openAIService.generateCompletion(
@@ -58,14 +61,16 @@ Return ONLY the JSON object. Nothing else.
                     request = request
                 )
                 if (!response.isSuccessful) {
+                    // FIX (LOW-002): Don't leak raw API error body to caller in release
+                    val detail = if (BuildConfig.DEBUG) " - ${response.errorBody()?.string()}" else ""
                     return@withContext Result.failure(
-                        Exception("Groq API error: ${response.code()} - ${response.errorBody()?.string()}")
+                        Exception("AI generation failed (${response.code()})$detail")
                     )
                 }
                 val content = response.body()
                     ?.choices?.firstOrNull()
                     ?.message?.content
-                    ?: return@withContext Result.failure(Exception("Empty response from Groq"))
+                    ?: return@withContext Result.failure(Exception("Empty response from AI service"))
                 Result.success(parseGenerationResponse(content, prompt))
             } catch (e: Exception) {
                 Result.failure(e)
@@ -75,11 +80,13 @@ Return ONLY the JSON object. Nothing else.
     override suspend fun regenerateSection(projectId: String, instruction: String): Result<Project> =
         withContext(Dispatchers.IO) {
             try {
+                // FIX-07 (HIGH-003): Sanitize instruction before embedding in LLM prompt
+                val safeInstruction = sanitizeUserInput(instruction)
                 val request = OpenAIRequest(
                     model = "llama-3.3-70b-versatile",
                     messages = listOf(
                         ChatMessage(role = "system", content = systemPrompt),
-                        ChatMessage(role = "user",   content = "Update the app with: $instruction. Return full updated JSON.")
+                        ChatMessage(role = "user",   content = "Update the app with: $safeInstruction. Return full updated JSON.")
                     )
                 )
                 val response = openAIService.generateCompletion(
@@ -87,14 +94,15 @@ Return ONLY the JSON object. Nothing else.
                     request = request
                 )
                 if (!response.isSuccessful) {
+                    val detail = if (BuildConfig.DEBUG) " - ${response.errorBody()?.string()}" else ""
                     return@withContext Result.failure(
-                        Exception("Groq API error: ${response.code()} - ${response.errorBody()?.string()}")
+                        Exception("AI regeneration failed (${response.code()})$detail")
                     )
                 }
                 val content = response.body()
                     ?.choices?.firstOrNull()
                     ?.message?.content
-                    ?: return@withContext Result.failure(Exception("Empty response"))
+                    ?: return@withContext Result.failure(Exception("Empty response from AI service"))
                 Result.success(parseGenerationResponse(content, instruction).copy(id = projectId))
             } catch (e: Exception) {
                 Result.failure(e)
@@ -104,12 +112,14 @@ Return ONLY the JSON object. Nothing else.
     override suspend fun detectBugs(code: String): Result<List<BugReport>> =
         withContext(Dispatchers.IO) {
             try {
+                // FIX-07 (HIGH-004): Sanitize code content before embedding in LLM prompt
+                val safeCode = sanitizeCodeInput(code)
                 val prompt = """
 Analyze this code for bugs. Return ONLY a JSON array, no other text:
 [{"line":10,"description":"Null pointer dereference","severity":"HIGH","fix":"Add null check"}]
 Severity values: LOW, MEDIUM, HIGH, CRITICAL
 Code:
-${code.take(3000)}
+$safeCode
 """.trimIndent()
                 val request = OpenAIRequest(
                     model = "llama-3.3-70b-versatile",
@@ -130,12 +140,14 @@ ${code.take(3000)}
     override suspend fun analyzeSecurity(code: String): Result<List<SecurityIssue>> =
         withContext(Dispatchers.IO) {
             try {
+                // FIX-07 (HIGH-004): Sanitize code content before embedding in LLM prompt
+                val safeCode = sanitizeCodeInput(code)
                 val prompt = """
 Analyze for security vulnerabilities. Return ONLY a JSON array:
 [{"title":"SQL Injection","description":"Input not sanitized","risk":"CRITICAL","mitigation":"Use parameterized queries"}]
 Risk values: LOW, MEDIUM, HIGH, CRITICAL
 Code:
-${code.take(3000)}
+$safeCode
 """.trimIndent()
                 val request = OpenAIRequest(
                     model = "llama-3.3-70b-versatile",
@@ -156,12 +168,14 @@ ${code.take(3000)}
     override suspend fun generateTests(code: String): Result<List<TestCase>> =
         withContext(Dispatchers.IO) {
             try {
+                // FIX-07 (HIGH-004): Sanitize code content before embedding in LLM prompt
+                val safeCode = sanitizeCodeInput(code)
                 val prompt = """
 Generate test cases. Return ONLY a JSON array:
 [{"name":"should login successfully","description":"Tests login","code":"test('login', async () => { expect(res.status).toBe(200) })","type":"UNIT"}]
 Type values: UNIT, INTEGRATION, E2E
 Code:
-${code.take(3000)}
+$safeCode
 """.trimIndent()
                 val request = OpenAIRequest(
                     model = "llama-3.3-70b-versatile",
@@ -236,5 +250,51 @@ ${code.take(3000)}
         val start = stripped.indexOfFirst { it == '{' || it == '[' }
         val end   = stripped.indexOfLast  { it == '}' || it == ']' }
         return if (start in 0 until end) stripped.substring(start, end + 1) else stripped
+    }
+
+    // ── FIX-07 (HIGH-003): Prompt injection sanitization ──────────────────────
+
+    /**
+     * Sanitizes free-text user input (prompts, instructions) before embedding
+     * into LLM messages. Removes known adversarial injection patterns and
+     * enforces a maximum character limit.
+     */
+    private fun sanitizeUserInput(input: String): String {
+        val injectionPatterns = listOf(
+            Regex("ignore\\s+(all\\s+)?previous\\s+instructions?", RegexOption.IGNORE_CASE),
+            Regex("forget\\s+(all\\s+)?instructions?", RegexOption.IGNORE_CASE),
+            Regex("system\\s*prompt", RegexOption.IGNORE_CASE),
+            Regex("reveal\\s+(your\\s+)?(api\\s+)?key", RegexOption.IGNORE_CASE),
+            Regex("output\\s+(all\\s+)?credentials?", RegexOption.IGNORE_CASE),
+            Regex("pretend\\s+(you\\s+are|to\\s+be)", RegexOption.IGNORE_CASE),
+            Regex("act\\s+as\\s+if", RegexOption.IGNORE_CASE),
+            Regex("jailbreak", RegexOption.IGNORE_CASE),
+            Regex("dan\\s*mode", RegexOption.IGNORE_CASE),
+            Regex("disregard\\s+(all\\s+)?previous", RegexOption.IGNORE_CASE)
+        )
+        var sanitized = input.trim()
+        for (pattern in injectionPatterns) {
+            sanitized = sanitized.replace(pattern, "[filtered]")
+        }
+        return sanitized.take(2000) // hard character limit
+    }
+
+    /**
+     * Sanitizes code submitted for analysis before embedding in LLM prompts.
+     * Strips single-line and block comments that could contain injection
+     * payloads, then truncates to a safe length.
+     */
+    private fun sanitizeCodeInput(code: String): String {
+        // Strip single-line comments that may contain injection instructions
+        val noLineComments = code.replace(
+            Regex("//[^\n]*ignore[^\n]*previous[^\n]*instructions?[^\n]*", RegexOption.IGNORE_CASE),
+            "// [comment filtered]"
+        )
+        // Strip block comments with injection patterns
+        val noBlockComments = noLineComments.replace(
+            Regex("/\\*[^*]*ignore[^*]*previous[^*]*instructions?[^*]*\\*/", RegexOption.IGNORE_CASE),
+            "/* [comment filtered] */"
+        )
+        return noBlockComments.take(3000) // hard character limit
     }
 }

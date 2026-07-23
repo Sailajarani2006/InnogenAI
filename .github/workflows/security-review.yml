@@ -381,9 +381,9 @@ jobs:
           
           echo "Checking for Critical SAST findings..."
           
-          # Check for hardcoded API keys in BuildConfig
-          if grep -q "buildConfigField.*API_KEY\|buildConfigField.*SECRET" app/build.gradle; then
-            echo "❌ CRITICAL: API keys in BuildConfig"
+          # Check for hardcoded API keys in BuildConfig (ensure they don't contain actual secrets in the repo)
+          if grep -rn "buildConfigField" app/build.gradle | grep -v "localProps.getProperty" | grep -q "API_KEY\|SECRET\|TOKEN"; then
+            echo "❌ CRITICAL: Hardcoded API keys in BuildConfig"
             CRITICAL_COUNT=$((CRITICAL_COUNT + 1))
           fi
           

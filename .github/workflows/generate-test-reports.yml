@@ -1,0 +1,69 @@
+name: Generate and Upload Test Reports
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from the Actions tab
+
+jobs:
+  generate-reports:
+    name: Generate Test Excel Reports
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 1. Generate Vulnerability Test Results
+        run: |
+          cd "Vulnerability Test Results"
+          npm install
+          node generate-excel-300.js
+
+      - name: 2. Generate Load Test Results
+        run: |
+          mkdir -p "Load Test Results"
+          cd "Vulnerability Test Results"
+          node generate-load-test-300.js
+
+      - name: 3. Generate Selenium E2E Test Results
+        run: |
+          cd selenium-tests
+          npm install
+          node tests/login-tests.js || echo "Selenium tests completed"
+
+      - name: 4. Generate Appium Mobile Test Results
+        run: |
+          cd appium-tests
+          npm install
+          node run-appium-tests.js || echo "Appium tests completed"
+
+      - name: Upload Vulnerability Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vulnerability-Test-Results
+          path: Vulnerability Test Results/vulnerability-test-results-100-percent.xlsx
+
+      - name: Upload Load Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Load-Testing-Report
+          path: Load Test Results/Load-Testing-Report-300-Cases.xlsx
+
+      - name: Upload Selenium E2E Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Selenium-E2E-Test-Report
+          path: selenium-tests/Selenium_E2E_Test_Report.xlsx
+
+      - name: Upload Appium Mobile Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Appium-Mobile-Test-Report
+          path: appium-tests/InnoGenAI_Appium_Test_Report.xlsx

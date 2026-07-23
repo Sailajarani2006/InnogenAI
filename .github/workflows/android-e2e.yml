@@ -1,0 +1,87 @@
+name: Android Appium E2E (1,111 Tests)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  test-android:
+    runs-on: ubuntu-latest
+    
+    # Required for the reactivecircus/android-emulator-runner to use KVM
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Install Appium Dependencies
+        working-directory: ./appium-tests
+        run: |
+          npm install
+          npx appium driver install uiautomator2
+
+      - name: Make CI Script Executable
+        run: chmod +x ./appium-tests/scripts/ci_run_tests.sh
+
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Appium Tests in Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          APK_PATH: ./app/build/outputs/apk/debug/app-debug.apk
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: Nexus 6
+          disable-animations: true
+          # We pass the execution over to our custom shell script
+          script: cd appium-tests && ./scripts/ci_run_tests.sh
+
+      - name: Upload Test Reports (Excel & HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Appium_E2E_Test_Reports
+          path: |
+            appium-tests/InnoGenAI_Appium_Test_Report.xlsx
+            appium-tests/execution-report.html
+          retention-days: 14
+
+      - name: Deploy HTML Report to GitHub Pages
+        if: always()
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: appium-tests
+          branch: gh-pages
+          target-folder: reports/latest
+          clean: false

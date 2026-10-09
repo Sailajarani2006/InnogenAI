@@ -30,4 +30,8 @@ interface ProjectDao {
     /** Count projects */
     @Query("SELECT COUNT(*) FROM projects WHERE userId = :userId")
     suspend fun countProjects(userId: String): Int
+
+    /** Get all IDs for user */
+    @Query("SELECT id FROM projects WHERE userId = :userId")
+    suspend fun getAllIdsForUser(userId: String): List<String>
 }

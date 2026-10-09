@@ -7,8 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.innogen.aipro.MainActivity
@@ -27,16 +25,7 @@ class InnoGenMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // FIX-10 (MED-004): Register the FCM token with Firestore so the backend
-        // can deliver push notifications to the correct device after token rotation.
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        FirebaseFirestore.getInstance()
-            .collection("users")
-            .document(uid)
-            .update("fcmToken", token)
-            .addOnFailureListener {
-                // Non-fatal: token will be retried on next app launch
-            }
+        // In production: send this token to your backend / Firestore
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

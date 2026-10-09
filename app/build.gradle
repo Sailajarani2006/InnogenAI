@@ -28,6 +28,7 @@ android {
             localProps.load(project.rootProject.file("local.properties").newDataInputStream())
         }
         buildConfigField "String", "OPENAI_API_KEY", "\"${localProps.getProperty('OPENAI_API_KEY', '')}\""
+        buildConfigField "String", "GEMINI_API_KEY", "\"${localProps.getProperty('GEMINI_API_KEY', '')}\""
         buildConfigField "String", "GITHUB_CLIENT_ID", "\"${localProps.getProperty('GITHUB_CLIENT_ID', '')}\""
         buildConfigField "String", "GITHUB_CLIENT_SECRET", "\"${localProps.getProperty('GITHUB_CLIENT_SECRET', '')}\""
     }

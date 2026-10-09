@@ -20,5 +20,7 @@
     <!-- Generation -->
     <string name="ai_thinking">AI is building your app…</string>
 
+    <!-- IMPORTANT: Replace with your actual Web Client ID from Firebase Console
+         Found at: Firebase Console > Authentication > Sign-in method > Google > Web client ID -->
     <string name="default_web_client_id">556742587384-iseh4egfa6m5tr99fhr2nke9vtn80mbh.apps.googleusercontent.com</string>
 </resources>

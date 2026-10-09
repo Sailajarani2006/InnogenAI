@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.innogen.aipro.domain.model.User
 import com.innogen.aipro.domain.repository.AuthRepository
 import kotlinx.coroutines.tasks.await
@@ -17,9 +18,9 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signInWithEmail(email: String, password: String): Result<User> {
         return try {
             val result = auth.signInWithEmailAndPassword(email, password).await()
-            val fbUser = result.user ?: return Result.failure(Exception("Sign in failed"))
-            val user   = fbUser.toUser()
-            Result.success(user)
+            val fbUser = result.user
+            if (fbUser == null) return Result.failure(Exception("Sign in failed"))
+            Result.success(fbUser.toUser())
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -28,18 +29,16 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signUpWithEmail(email: String, password: String, name: String): Result<User> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val fbUser = result.user ?: return Result.failure(Exception("Sign up failed"))
+            val fbUser = result.user
+            if (fbUser == null) return Result.failure(Exception("Sign up failed"))
 
-            // Update display name
-            val profileUpdates = userProfileChangeRequest { displayName = name }
-            fbUser.updateProfile(profileUpdates).await()
+            fbUser.updateProfile(userProfileChangeRequest { displayName = name }).await()
 
-            // Save user to Firestore
             val userData = mapOf(
-                "uid"      to fbUser.uid,
-                "email"    to email,
-                "name"     to name,
-                "plan"     to "free",
+                "uid"       to fbUser.uid,
+                "email"     to email,
+                "name"      to name,
+                "plan"      to "free",
                 "createdAt" to System.currentTimeMillis()
             )
             firestore.collection("users").document(fbUser.uid).set(userData).await()
@@ -54,9 +53,9 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val result     = auth.signInWithCredential(credential).await()
-            val fbUser     = result.user ?: return Result.failure(Exception("Google sign in failed"))
+            val fbUser     = result.user
+            if (fbUser == null) return Result.failure(Exception("Google sign in failed"))
 
-            // Upsert user in Firestore
             val userData = mapOf(
                 "uid"      to fbUser.uid,
                 "email"    to (fbUser.email ?: ""),
@@ -64,8 +63,9 @@ class AuthRepositoryImpl @Inject constructor(
                 "photoUrl" to (fbUser.photoUrl?.toString() ?: ""),
                 "plan"     to "free"
             )
-            firestore.collection("users").document(fbUser.uid)
-                .set(userData, com.google.firebase.firestore.SetOptions.merge())
+            firestore.collection("users")
+                .document(fbUser.uid)
+                .set(userData, SetOptions.merge())
                 .await()
 
             Result.success(fbUser.toUser())

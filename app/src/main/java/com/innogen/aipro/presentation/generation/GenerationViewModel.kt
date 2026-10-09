@@ -7,31 +7,27 @@ import com.innogen.aipro.domain.repository.AIRepository
 import com.innogen.aipro.domain.repository.AuthRepository
 import com.innogen.aipro.domain.repository.ProjectRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class GenerationUiState(
-    val steps               : List<GenerationStep> = defaultSteps(),
-    val isComplete          : Boolean              = false,
-    val isError             : Boolean              = false,
-    val errorMessage        : String               = "",
-    val generatedProjectId  : String               = "",
-    // FIX-11 (MED-003): Rate limiting state exposed to UI
-    val isRateLimited       : Boolean              = false,
-    val rateLimitCooldownSec: Int                  = 0
+    val steps          : List<GenerationStep> = defaultSteps(),
+    val isComplete     : Boolean              = false,
+    val isError        : Boolean              = false,
+    val errorMessage   : String               = "",
+    val generatedProjectId: String            = ""
 )
 
 private fun defaultSteps() = listOf(
-    GenerationStep(1, "Understanding Idea",       "Analyzing your concept with AI…"),
-    GenerationStep(2, "Designing Architecture",   "Creating system design and tech stack…"),
-    GenerationStep(3, "Generating Frontend Code", "Building UI components and screens…"),
-    GenerationStep(4, "Generating Backend Code",  "Creating APIs, routes and controllers…"),
-    GenerationStep(5, "Creating Database Schema", "Designing tables and relationships…"),
-    GenerationStep(6, "Writing Documentation",    "Generating README, API docs, tests…"),
-    GenerationStep(7, "Finalizing Project",       "Saving to cloud and local storage…")
+    GenerationStep(1, "Understanding Idea",        "Analyzing your concept with AI…"),
+    GenerationStep(2, "Designing Architecture",    "Creating system design and tech stack…"),
+    GenerationStep(3, "Generating Frontend Code",  "Building UI components and screens…"),
+    GenerationStep(4, "Generating Backend Code",   "Creating APIs, routes and controllers…"),
+    GenerationStep(5, "Creating Database Schema",  "Designing tables and relationships…"),
+    GenerationStep(6, "Writing Documentation",     "Generating README, API docs, tests…"),
+    GenerationStep(7, "Finalizing Project",        "Saving to cloud and local storage…")
 )
 
 @HiltViewModel
@@ -44,43 +40,16 @@ class GenerationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(GenerationUiState())
     val uiState: StateFlow<GenerationUiState> = _uiState.asStateFlow()
 
-    // FIX-11 (MED-003): Rate limiting — enforce 30-second minimum between API calls
-    private var lastGenerationTime = 0L
-    private val MIN_INTERVAL_MS    = 30_000L
-    private var cooldownJob: Job?  = null
-
     fun startGeneration(prompt: String) {
-        // FIX-11 (MED-003): Block calls that arrive too soon after the last one
-        val now     = System.currentTimeMillis()
-        val elapsed = now - lastGenerationTime
-        if (lastGenerationTime > 0 && elapsed < MIN_INTERVAL_MS) {
-            val remainingSec = ((MIN_INTERVAL_MS - elapsed) / 1000).toInt() + 1
-            _uiState.update { it.copy(isRateLimited = true, rateLimitCooldownSec = remainingSec) }
-            startCooldownTimer(remainingSec)
-            return
-        }
-        lastGenerationTime = now
-
         viewModelScope.launch {
             try {
-                // Reset to fresh state
-                _uiState.update {
-                    it.copy(
-                        steps              = defaultSteps(),
-                        isError            = false,
-                        isComplete         = false,
-                        isRateLimited      = false,
-                        rateLimitCooldownSec = 0
-                    )
-                }
-
-                // Steps 1 & 2
+                // Step 1 & 2: Show as active
                 activateStep(1)
                 delay(800)
                 completeStep(1); activateStep(2)
                 delay(600)
 
-                // Step 3: AI call
+                // Step 3: Actually call OpenAI
                 completeStep(2); activateStep(3)
                 val result = aiRepository.generateApp(prompt)
 
@@ -91,41 +60,32 @@ class GenerationViewModel @Inject constructor(
 
                 val project = result.getOrThrow()
 
-                // Steps 4-6 (simulate progress while AI already responded)
+                // Simulate steps 4-6 while OpenAI response is already done
                 delay(500); completeStep(3); activateStep(4); delay(400)
                 completeStep(4); activateStep(5); delay(400)
                 completeStep(5); activateStep(6); delay(400)
                 completeStep(6); activateStep(7)
 
-                // Step 7: Save
-                val userId = authRepository.getCurrentUser()?.uid ?: ""
-                val toSave = project.copy(userId = userId)
+                // Step 7: Save project
+                val userId  = authRepository.getCurrentUser()?.uid?.ifBlank { null }
+                    ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                    ?: ""
+                val toSave  = project.copy(userId = userId)
                 projectRepository.saveProject(toSave)
 
                 delay(300)
                 completeStep(7)
+
                 _uiState.update { it.copy(isComplete = true, generatedProjectId = toSave.id) }
 
             } catch (e: Exception) {
-                _uiState.update { it.copy(isError = true, errorMessage = e.message ?: "Unknown error") }
+                _uiState.update { it.copy(
+                    isError      = true,
+                    errorMessage = e.message ?: "Unknown error"
+                )}
             }
         }
     }
-
-    // ── Rate-limit countdown ───────────────────────────────────────────────────
-
-    private fun startCooldownTimer(seconds: Int) {
-        cooldownJob?.cancel()
-        cooldownJob = viewModelScope.launch {
-            for (remaining in seconds downTo 1) {
-                _uiState.update { it.copy(rateLimitCooldownSec = remaining) }
-                delay(1000)
-            }
-            _uiState.update { it.copy(isRateLimited = false, rateLimitCooldownSec = 0) }
-        }
-    }
-
-    // ── Step helpers ───────────────────────────────────────────────────────────
 
     private fun activateStep(id: Int) = _uiState.update { state ->
         state.copy(steps = state.steps.map { s ->
@@ -147,10 +107,5 @@ class GenerationViewModel @Inject constructor(
                 if (s.id == id) s.copy(status = StepStatus.ERROR) else s
             }
         )
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        cooldownJob?.cancel()
     }
 }

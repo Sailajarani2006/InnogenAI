@@ -10,6 +10,7 @@ interface ProjectRepository {
     suspend fun getProjectById(id: String): Project?
     suspend fun saveProject(project: Project)
     suspend fun deleteProject(id: String)
+    suspend fun syncWithFirestore(userId: String)
 }
 
 interface AIRepository {

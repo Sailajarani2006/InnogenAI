@@ -21,6 +21,6 @@ abstract class RepositoryModule {
     @Binds @Singleton
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
 
-    @Binds @Singleton
-    abstract fun bindGitHubRepository(impl: GitHubRepositoryImpl): GitHubRepository
+    // Note: GitHubRepositoryImpl is injected directly (not via interface)
+    // because it has OAuth-specific methods not in the interface
 }

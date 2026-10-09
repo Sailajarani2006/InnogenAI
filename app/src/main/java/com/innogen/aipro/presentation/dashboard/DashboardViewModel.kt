@@ -2,10 +2,12 @@ package com.innogen.aipro.presentation.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.innogen.aipro.domain.model.Project
 import com.innogen.aipro.domain.repository.AuthRepository
 import com.innogen.aipro.domain.repository.ProjectRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,23 +29,53 @@ class DashboardViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
+    private var projectsJob: Job? = null
+    private var authListener: FirebaseAuth.AuthStateListener? = null
+
     init {
-        loadUser()
-        loadProjects()
+        authListener = FirebaseAuth.AuthStateListener { auth ->
+            val user = auth.currentUser
+            _uiState.update { it.copy(
+                userName  = user?.displayName?.ifBlank { null } ?: user?.email?.substringBefore("@") ?: "User",
+                userEmail = user?.email ?: ""
+            )}
+            startObservingProjects(user?.uid ?: "")
+        }
+        FirebaseAuth.getInstance().addAuthStateListener(authListener!!)
+        refreshProjects()
     }
 
-    private fun loadUser() {
-        val user = authRepository.getCurrentUser()
+    override fun onCleared() {
+        super.onCleared()
+        authListener?.let { FirebaseAuth.getInstance().removeAuthStateListener(it) }
+    }
+
+    fun refreshProjects() {
+        val user = FirebaseAuth.getInstance().currentUser
+        val userId = user?.uid ?: authRepository.getCurrentUser()?.uid ?: ""
         _uiState.update { it.copy(
-            userName  = user?.name  ?: user?.email?.substringBefore("@") ?: "User",
+            userName  = user?.displayName?.ifBlank { null } ?: user?.email?.substringBefore("@") ?: "User",
             userEmail = user?.email ?: ""
         )}
+        startObservingProjects(userId)
     }
 
-    private fun loadProjects() {
-        val userId = authRepository.getCurrentUser()?.uid ?: return
-        viewModelScope.launch {
+    private fun startObservingProjects(userId: String) {
+        if (userId.isBlank()) {
+            _uiState.update { it.copy(isLoading = false, projects = emptyList()) }
+            return
+        }
+
+        projectsJob?.cancel()
+        projectsJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            launch {
+                try {
+                    projectRepository.syncWithFirestore(userId)
+                } catch (e: Exception) {
+                    // Non-fatal background initial sync
+                }
+            }
             projectRepository.getProjects(userId)
                 .catch { e -> _uiState.update { it.copy(isLoading = false, errorMessage = e.message) } }
                 .collect { projects ->
@@ -56,9 +88,5 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             projectRepository.deleteProject(projectId)
         }
-    }
-
-    fun refreshProjects() {
-        loadProjects()
     }
 }

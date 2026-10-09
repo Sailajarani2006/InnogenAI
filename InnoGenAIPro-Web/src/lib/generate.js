@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
 
 const GROQ_API_KEY = import.meta.env?.VITE_GROQ_API_KEY || "";
@@ -42,8 +42,9 @@ function extractAndParseJson(text) {
 }
 
 export const generateApp = async (idea, userOrId) => {
-  const userId = typeof userOrId === 'object' ? userOrId?.uid : userOrId;
-  const userEmail = typeof userOrId === 'object' ? userOrId?.email : '';
+  const currentAuthUser = auth.currentUser;
+  const userId = (typeof userOrId === 'object' ? userOrId?.uid : userOrId) || currentAuthUser?.uid || "";
+  const userEmail = (typeof userOrId === 'object' ? userOrId?.email : '') || currentAuthUser?.email || "";
 
   let lastError = null;
 

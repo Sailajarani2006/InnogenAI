@@ -264,12 +264,12 @@ class GitHubRepositoryImpl @Inject constructor(
         val code = project.generatedCode ?: return emptyMap()
         return buildMap {
             if (code.readme.isNotBlank())         put("README.md",           code.readme)
-            if (code.frontendCode.isNotBlank())   put("frontend/main.js",    code.frontendCode)
+            if (code.frontendCode.isNotBlank())   put("frontend/index.html", code.frontendCode)
             if (code.backendCode.isNotBlank())    put("backend/server.js",   code.backendCode)
             if (code.databaseSchema.isNotBlank()) put("database/schema.sql", code.databaseSchema)
             if (code.dockerConfig.isNotBlank())   put("Dockerfile",          code.dockerConfig)
             if (code.apiDocs.isNotBlank())        put("docs/API.md",         code.apiDocs)
-            if (code.testCases.isNotBlank())      put("tests/app.test.js",   code.testCases)
+            if (code.testCases.isNotBlank())      put("tests/test.js",       code.testCases)
         }
     }
 }

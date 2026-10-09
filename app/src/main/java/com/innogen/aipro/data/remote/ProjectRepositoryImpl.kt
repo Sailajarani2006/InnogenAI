@@ -4,8 +4,6 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 import com.innogen.aipro.data.local.dao.ProjectDao
@@ -16,8 +14,9 @@ import com.innogen.aipro.domain.model.Project
 import com.innogen.aipro.domain.repository.ProjectRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -28,88 +27,78 @@ class ProjectRepositoryImpl @Inject constructor(
 ) : ProjectRepository {
 
     private val gson = Gson()
-    private var activeUidListener: ListenerRegistration? = null
-    private var activeEmailListener: ListenerRegistration? = null
-    private var activeUserId: String? = null
-    private var activeUserEmail: String? = null
 
-    override fun getProjects(userId: String): Flow<List<Project>> {
-        val effectiveUserId = if (userId.isNotBlank()) userId else (FirebaseAuth.getInstance().currentUser?.uid ?: "")
-        if (effectiveUserId.isNotBlank()) {
-            startRealtimeSync(effectiveUserId)
-        }
-        return projectDao.getProjectsByUser(effectiveUserId).map { list ->
-            list.map { it.toDomain() }
-        }
-    }
+    override fun getProjects(userId: String): Flow<List<Project>> = callbackFlow {
+        val currentAuthUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        val effectiveUserId = if (userId.isNotBlank()) userId else currentAuthUid
 
-    private fun startRealtimeSync(userId: String) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        val userEmail = currentUser?.email ?: ""
-
-        if (activeUserId == userId && activeUserEmail == userEmail && (activeUidListener != null || activeEmailListener != null)) {
-            return
+        // 1. Instantly emit cached projects from Room DB (zero latency initial render)
+        try {
+            val cachedEntities = if (effectiveUserId.isNotBlank()) {
+                projectDao.getProjectsByUserOnce(effectiveUserId)
+            } else {
+                projectDao.getAllProjectsOnce()
+            }
+            if (cachedEntities.isNotEmpty()) {
+                trySend(cachedEntities.map { it.toDomain() })
+            }
+        } catch (e: Exception) {
+            Log.w("ProjectRepository", "Room cache pre-fetch notice: ${e.message}")
         }
 
-        activeUidListener?.remove()
-        activeEmailListener?.remove()
-        activeUserId = userId
-        activeUserEmail = userEmail
+        if (effectiveUserId.isBlank()) {
+            awaitClose { }
+            return@callbackFlow
+        }
 
-        if (userId.isBlank() && userEmail.isBlank()) return
-
-        // 1. Listen by userId (UID)
-        if (userId.isNotBlank()) {
-            activeUidListener = firestore.collection("projects")
-                .whereEqualTo("userId", userId)
-                .addSnapshotListener { snapshot, error ->
-                    if (error != null || snapshot == null) {
-                        Log.w("ProjectRepository", "Firestore UID listener error: ${error?.message}")
-                        return@addSnapshotListener
-                    }
-                    CoroutineScope(Dispatchers.IO).launch {
-                        processFirestoreSnapshot(snapshot, userId, checkRemovals = true)
-                    }
+        // 2. Real-Time Firestore Snapshot Listener - Updates in milliseconds when Web or App creates/updates/deletes
+        val listener = firestore.collection("projects")
+            .whereEqualTo("userId", effectiveUserId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("ProjectRepository", "Firestore real-time sync error: ${error.message}", error)
+                    return@addSnapshotListener
                 }
-        }
 
-        // 2. Listen by userEmail if available (allows instant cross-sync if created with email identifier)
-        if (userEmail.isNotBlank()) {
-            activeEmailListener = firestore.collection("projects")
-                .whereEqualTo("userEmail", userEmail)
-                .addSnapshotListener { snapshot, error ->
-                    if (error != null || snapshot == null) {
-                        Log.w("ProjectRepository", "Firestore Email listener error: ${error?.message}")
-                        return@addSnapshotListener
-                    }
-                    CoroutineScope(Dispatchers.IO).launch {
-                        processFirestoreSnapshot(snapshot, userId, checkRemovals = false)
-                    }
-                }
-        }
-    }
+                if (snapshot != null) {
+                    val projectsList = mutableListOf<Project>()
+                    val firestoreDocIds = mutableSetOf<String>()
 
-    private suspend fun processFirestoreSnapshot(snapshot: QuerySnapshot, targetUserId: String, checkRemovals: Boolean) {
-        val firestoreIds = mutableSetOf<String>()
-        for (doc in snapshot.documents) {
-            firestoreIds.add(doc.id)
-            val entity = parseDocumentToEntity(doc, targetUserId)
-            projectDao.upsertProject(entity)
-        }
+                    for (doc in snapshot.documents) {
+                        try {
+                            firestoreDocIds.add(doc.id)
+                            val entity = parseDocumentToEntity(doc, effectiveUserId)
+                            projectsList.add(entity.toDomain())
 
-        // Handle remote deletions: if a local project for this user was deleted remotely in Firestore,
-        // clean it up locally after 10s grace period (so new local projects have time to upload)
-        if (checkRemovals && !snapshot.metadata.hasPendingWrites()) {
-            val localIds = projectDao.getAllIdsForUser(targetUserId)
-            val now = System.currentTimeMillis()
-            for (localId in localIds) {
-                if (!firestoreIds.contains(localId)) {
-                    val localProject = projectDao.getProjectById(localId)
-                    if (localProject != null && (now - localProject.createdAt) > 10000L) {
-                        projectDao.deleteProject(localId)
+                            // Update Room DB cache in background
+                            CoroutineScope(Dispatchers.IO).launch {
+                                projectDao.upsertProject(entity)
+                            }
+                        } catch (e: Exception) {
+                            Log.w("ProjectRepository", "Failed to parse Firestore doc ${doc.id}: ${e.message}")
+                        }
                     }
+
+                    // Clean up locally if deleted remotely
+                    if (!snapshot.metadata.hasPendingWrites()) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val localIds = projectDao.getAllIdsForUser(effectiveUserId)
+                            for (localId in localIds) {
+                                if (!firestoreDocIds.contains(localId)) {
+                                    projectDao.deleteProject(localId)
+                                }
+                            }
+                        }
+                    }
+
+                    // Sort newest first
+                    projectsList.sortByDescending { it.createdAt }
+                    trySend(projectsList)
                 }
             }
+
+        awaitClose {
+            listener.remove()
         }
     }
 
@@ -131,18 +120,36 @@ class ProjectRepositoryImpl @Inject constructor(
             else -> createdAt
         }
 
-        val generatedCodeJson = doc.get("generatedCode")?.let {
-            if (it is String) it else gson.toJson(it)
+        val generatedCodeObj = doc.get("generatedCode")
+        val generatedCodeJson = when (generatedCodeObj) {
+            is String -> generatedCodeObj
+            is Map<*, *> -> gson.toJson(generatedCodeObj)
+            else -> {
+                val frontend = doc.getString("frontendCode") ?: ""
+                val backend = doc.getString("backendCode") ?: ""
+                val schema = doc.getString("databaseSchema") ?: ""
+                val readme = doc.getString("readme") ?: ""
+                if (frontend.isNotBlank() || backend.isNotBlank() || schema.isNotBlank() || readme.isNotBlank()) {
+                    gson.toJson(mapOf(
+                        "frontendCode"   to frontend,
+                        "backendCode"    to backend,
+                        "databaseSchema" to schema,
+                        "readme"         to readme
+                    ))
+                } else null
+            }
         }
 
-        val techStackJson = doc.get("techStack")?.let {
-            if (it is String) it else gson.toJson(it)
+        val techStackObj = doc.get("techStack")
+        val techStackJson = when (techStackObj) {
+            is String -> techStackObj
+            is Map<*, *> -> gson.toJson(techStackObj)
+            else -> null
         }
 
         val rawFeatures = doc.get("features") as? List<*> ?: doc.get("tags") as? List<*> ?: emptyList<Any>()
         val featuresList = rawFeatures.mapNotNull { it?.toString() }
 
-        // Always associate with the target user's local Room ID so Room query returns it
         val docUserId = doc.getString("userId")
         val effectiveUserId = if (!docUserId.isNullOrBlank()) docUserId else fallbackUserId
 
@@ -162,8 +169,23 @@ class ProjectRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getProjectById(id: String): Project? =
-        projectDao.getProjectById(id)?.toDomain()
+    override suspend fun getProjectById(id: String): Project? {
+        val local = projectDao.getProjectById(id)
+        if (local != null) return local.toDomain()
+
+        // Fallback fetch from Firestore if not in local Room DB yet
+        return try {
+            val doc = firestore.collection("projects").document(id).get().await()
+            if (doc.exists()) {
+                val currentAuthUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                val entity = parseDocumentToEntity(doc, currentAuthUid)
+                projectDao.upsertProject(entity)
+                entity.toDomain()
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     override suspend fun saveProject(project: Project) {
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -171,57 +193,59 @@ class ProjectRepositoryImpl @Inject constructor(
         val userEmail = currentUser?.email ?: ""
         val updatedProject = project.copy(userId = effectiveUserId)
 
-        // Step 1: Always save locally first (instant, works offline)
+        // 1. Save locally to Room DB immediately (instant, offline-ready)
         projectDao.upsertProject(updatedProject.toEntity())
 
-        // Step 2: Firestore sync
-        try {
-            val data = mutableMapOf<String, Any>(
-                "id"          to updatedProject.id,
-                "userId"      to effectiveUserId,
-                "userEmail"   to userEmail,
-                "title"       to updatedProject.title,
-                "name"        to updatedProject.title,
-                "description" to updatedProject.description,
-                "prompt"      to updatedProject.prompt,
-                "idea"        to updatedProject.prompt,
-                "status"      to updatedProject.status.name,
-                "createdAt"   to updatedProject.createdAt,
-                "updatedAt"   to updatedProject.updatedAt,
-                "features"    to updatedProject.features,
-                "tags"        to (if (updatedProject.features.isNotEmpty()) updatedProject.features else listOfNotNull(updatedProject.techStack?.frontend, updatedProject.techStack?.backend, updatedProject.techStack?.database)),
-                "githubRepo"  to updatedProject.githubRepo,
-                "hasCode"     to (updatedProject.generatedCode != null)
-            )
-
-            updatedProject.generatedCode?.let {
-                data["generatedCode"] = mapOf(
-                    "frontendCode"    to it.frontendCode,
-                    "backendCode"     to it.backendCode,
-                    "databaseSchema"  to it.databaseSchema,
-                    "dockerConfig"    to it.dockerConfig,
-                    "readme"          to it.readme,
-                    "apiDocs"         to it.apiDocs,
-                    "testCases"       to it.testCases
+        // 2. Sync to Firestore in real time
+        if (effectiveUserId.isNotBlank()) {
+            try {
+                val data = mutableMapOf<String, Any>(
+                    "id"          to updatedProject.id,
+                    "userId"      to effectiveUserId,
+                    "userEmail"   to userEmail,
+                    "title"       to updatedProject.title,
+                    "name"        to updatedProject.title,
+                    "description" to updatedProject.description,
+                    "prompt"      to updatedProject.prompt,
+                    "idea"        to updatedProject.prompt,
+                    "status"      to updatedProject.status.name,
+                    "createdAt"   to updatedProject.createdAt,
+                    "updatedAt"   to updatedProject.updatedAt,
+                    "features"    to updatedProject.features,
+                    "tags"        to (if (updatedProject.features.isNotEmpty()) updatedProject.features else listOfNotNull(updatedProject.techStack?.frontend, updatedProject.techStack?.backend, updatedProject.techStack?.database)),
+                    "githubRepo"  to updatedProject.githubRepo,
+                    "hasCode"     to (updatedProject.generatedCode != null)
                 )
-            }
 
-            updatedProject.techStack?.let {
-                data["techStack"] = mapOf(
-                    "frontend"   to it.frontend,
-                    "backend"    to it.backend,
-                    "database"   to it.database,
-                    "deployment" to it.deployment
-                )
-            }
+                updatedProject.generatedCode?.let {
+                    data["generatedCode"] = mapOf(
+                        "frontendCode"    to it.frontendCode,
+                        "backendCode"     to it.backendCode,
+                        "databaseSchema"  to it.databaseSchema,
+                        "dockerConfig"    to it.dockerConfig,
+                        "readme"          to it.readme,
+                        "apiDocs"         to it.apiDocs,
+                        "testCases"       to it.testCases
+                    )
+                }
 
-            firestore.collection("projects")
-                .document(updatedProject.id)
-                .set(data, SetOptions.merge())
-                .await()
-            Log.d("ProjectRepository", "Successfully synced project to Firestore: ${updatedProject.id}")
-        } catch (e: Exception) {
-            Log.e("ProjectRepository", "Firestore save error: ${e.message}", e)
+                updatedProject.techStack?.let {
+                    data["techStack"] = mapOf(
+                        "frontend"   to it.frontend,
+                        "backend"    to it.backend,
+                        "database"   to it.database,
+                        "deployment" to it.deployment
+                    )
+                }
+
+                firestore.collection("projects")
+                    .document(updatedProject.id)
+                    .set(data, SetOptions.merge())
+                    .await()
+                Log.d("ProjectRepository", "Synced project to Firestore: ${updatedProject.id}")
+            } catch (e: Exception) {
+                Log.e("ProjectRepository", "Firestore save error: ${e.message}", e)
+            }
         }
     }
 
@@ -229,6 +253,7 @@ class ProjectRepositoryImpl @Inject constructor(
         projectDao.deleteProject(id)
         try {
             firestore.collection("projects").document(id).delete().await()
+            Log.d("ProjectRepository", "Deleted project from Firestore: $id")
         } catch (e: Exception) {
             Log.w("ProjectRepository", "Firestore delete error: ${e.message}")
         }
@@ -238,22 +263,14 @@ class ProjectRepositoryImpl @Inject constructor(
         val effectiveUserId = if (userId.isNotBlank()) userId else (FirebaseAuth.getInstance().currentUser?.uid ?: "")
         if (effectiveUserId.isBlank()) return
 
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        val email = currentUser?.email ?: ""
-
         try {
             val snapshot = firestore.collection("projects")
                 .whereEqualTo("userId", effectiveUserId)
                 .get()
                 .await()
-            processFirestoreSnapshot(snapshot, effectiveUserId, checkRemovals = false)
-
-            if (email.isNotBlank()) {
-                val emailSnapshot = firestore.collection("projects")
-                    .whereEqualTo("userEmail", email)
-                    .get()
-                    .await()
-                processFirestoreSnapshot(emailSnapshot, effectiveUserId, checkRemovals = false)
+            for (doc in snapshot.documents) {
+                val entity = parseDocumentToEntity(doc, effectiveUserId)
+                projectDao.upsertProject(entity)
             }
         } catch (e: Exception) {
             Log.w("ProjectRepository", "One-shot Firestore sync failed: ${e.message}")

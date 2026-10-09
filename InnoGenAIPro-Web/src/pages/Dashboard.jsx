@@ -54,15 +54,6 @@ const Dashboard = ({ user }) => {
       return 0;
     };
 
-    const projectsMap = new Map();
-
-    const updateProjectsList = () => {
-      const list = Array.from(projectsMap.values());
-      list.sort((a, b) => getSortTime(b.createdAt) - getSortTime(a.createdAt));
-      setRecentProjects(list);
-      setLoadingProjects(false);
-    };
-
     const qUid = query(
       collection(db, 'projects'),
       where('userId', '==', user.uid)
@@ -71,13 +62,10 @@ const Dashboard = ({ user }) => {
     const unsubUid = onSnapshot(
       qUid,
       (querySnapshot) => {
-        // Collect current UID matches
-        const currentIds = new Set();
-        querySnapshot.forEach(doc => {
-          currentIds.add(doc.id);
-          projectsMap.set(doc.id, { id: doc.id, ...doc.data() });
-        });
-        updateProjectsList();
+        const list = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        list.sort((a, b) => getSortTime(b.createdAt) - getSortTime(a.createdAt));
+        setRecentProjects(list);
+        setLoadingProjects(false);
       },
       (error) => {
         console.error("Error fetching real-time projects by UID:", error);
@@ -85,29 +73,8 @@ const Dashboard = ({ user }) => {
       }
     );
 
-    let unsubEmail = null;
-    if (user.email) {
-      const qEmail = query(
-        collection(db, 'projects'),
-        where('userEmail', '==', user.email)
-      );
-      unsubEmail = onSnapshot(
-        qEmail,
-        (querySnapshot) => {
-          querySnapshot.forEach(doc => {
-            projectsMap.set(doc.id, { id: doc.id, ...doc.data() });
-          });
-          updateProjectsList();
-        },
-        (error) => {
-          console.warn("Real-time projects by email listener warning:", error);
-        }
-      );
-    }
-
     return () => {
       unsubUid();
-      if (unsubEmail) unsubEmail();
     };
   }, [user]);
 

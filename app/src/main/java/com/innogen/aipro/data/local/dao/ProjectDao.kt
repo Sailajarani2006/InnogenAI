@@ -34,4 +34,11 @@ interface ProjectDao {
     /** Get all IDs for user */
     @Query("SELECT id FROM projects WHERE userId = :userId")
     suspend fun getAllIdsForUser(userId: String): List<String>
+
+    /** One-shot fetch for immediate cache display */
+    @Query("SELECT * FROM projects WHERE userId = :userId ORDER BY updatedAt DESC")
+    suspend fun getProjectsByUserOnce(userId: String): List<ProjectEntity>
+
+    @Query("SELECT * FROM projects ORDER BY updatedAt DESC")
+    suspend fun getAllProjectsOnce(): List<ProjectEntity>
 }

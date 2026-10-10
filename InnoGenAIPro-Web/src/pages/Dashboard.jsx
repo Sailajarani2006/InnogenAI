@@ -3,11 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mic, Send, Sparkles, LayoutGrid, FolderOpen, Trash2 } from 'lucide-react';
 import GithubIcon from '../components/GithubIcon';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { generateApp } from '../lib/generate';
 import LoadingOverlay from '../components/LoadingOverlay';
 import './Dashboard.css';
+
+const normalizeProject = (row) => ({
+  ...row,
+  title: row.title || row.name || 'Untitled',
+  createdAt: row.created_at || row.createdAt || Date.now(),
+  updatedAt: row.updated_at || row.updatedAt || Date.now(),
+  userId: row.user_id || row.userId || '',
+  userEmail: row.user_email || row.userEmail || '',
+  githubRepo: row.github_repo || row.githubRepo || '',
+  hasCode: row.has_code ?? row.hasCode ?? true,
+  generatedCode: row.generated_code || row.generatedCode || {},
+  techStack: row.tech_stack || row.techStack || {}
+});
 
 const Dashboard = ({ user }) => {
   const navigate = useNavigate();
@@ -54,6 +68,42 @@ const Dashboard = ({ user }) => {
       return 0;
     };
 
+    // ── 1. Supabase Data & Real-Time Sync ──
+    let supabaseChannel = null;
+    if (isSupabaseConfigured() && supabase) {
+      supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.uid)
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            setRecentProjects(data.map(normalizeProject));
+            setLoadingProjects(false);
+          }
+        });
+
+      supabaseChannel = supabase
+        .channel('realtime_dashboard_projects')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'projects', filter: `user_id=eq.${user.uid}` },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const item = normalizeProject(payload.new);
+              setRecentProjects(prev => [item, ...prev.filter(p => p.id !== item.id)]);
+            } else if (payload.eventType === 'UPDATE') {
+              const item = normalizeProject(payload.new);
+              setRecentProjects(prev => prev.map(p => p.id === item.id ? item : p));
+            } else if (payload.eventType === 'DELETE') {
+              setRecentProjects(prev => prev.filter(p => p.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    // ── 2. Firestore Fallback / Dual Real-Time Sync ──
     const qUid = query(
       collection(db, 'projects'),
       where('userId', '==', user.uid)
@@ -62,30 +112,41 @@ const Dashboard = ({ user }) => {
     const unsubUid = onSnapshot(
       qUid,
       (querySnapshot) => {
-        const list = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        list.sort((a, b) => getSortTime(b.createdAt) - getSortTime(a.createdAt));
-        setRecentProjects(list);
-        setLoadingProjects(false);
+        if (!isSupabaseConfigured() || !supabase) {
+          const list = querySnapshot.docs.map(d => normalizeProject({ id: d.id, ...d.data() }));
+          list.sort((a, b) => getSortTime(b.createdAt) - getSortTime(a.createdAt));
+          setRecentProjects(list);
+          setLoadingProjects(false);
+        }
       },
       (error) => {
-        console.error("Error fetching real-time projects by UID:", error);
+        console.warn("Firestore projects listener status:", error?.message);
         setLoadingProjects(false);
       }
     );
 
     return () => {
       unsubUid();
+      if (supabaseChannel && supabase) {
+        supabase.removeChannel(supabaseChannel);
+      }
     };
   }, [user]);
 
   const handleDeleteProject = async (e, projectId) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this project?")) return;
+
+    // Optimistically remove immediately from UI so it instantly vanishes from Recent
+    setRecentProjects(prev => prev.filter(p => p.id !== projectId));
+
     try {
+      if (isSupabaseConfigured() && supabase) {
+        await supabase.from('projects').delete().eq('id', projectId);
+      }
       await deleteDoc(doc(db, 'projects', projectId));
     } catch (error) {
       console.error("Failed to delete project:", error);
-      alert(`Could not delete project: ${error.message || error}`);
     }
   };
 

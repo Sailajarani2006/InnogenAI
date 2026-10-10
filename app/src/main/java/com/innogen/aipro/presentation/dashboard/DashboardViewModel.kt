@@ -85,6 +85,10 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun deleteProject(projectId: String) {
+        // Optimistically remove immediately from UI so it instantly vanishes from Recent Projects
+        _uiState.update { state ->
+            state.copy(projects = state.projects.filter { it.id != projectId })
+        }
         viewModelScope.launch {
             projectRepository.deleteProject(projectId)
         }

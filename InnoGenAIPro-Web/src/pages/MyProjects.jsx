@@ -3,8 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Trash2, ArrowLeft } from 'lucide-react';
 import GithubIcon from '../components/GithubIcon';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+
+const normalizeProject = (row) => ({
+  ...row,
+  title: row.title || row.name || 'Untitled',
+  createdAt: row.created_at || row.createdAt || Date.now(),
+  updatedAt: row.updated_at || row.updatedAt || Date.now(),
+  userId: row.user_id || row.userId || '',
+  userEmail: row.user_email || row.userEmail || '',
+  githubRepo: row.github_repo || row.githubRepo || '',
+  hasCode: row.has_code ?? row.hasCode ?? true,
+  generatedCode: row.generated_code || row.generatedCode || {},
+  techStack: row.tech_stack || row.techStack || {}
+});
 
 const MyProjects = ({ user }) => {
   const navigate = useNavigate();
@@ -26,6 +40,42 @@ const MyProjects = ({ user }) => {
       return 0;
     };
 
+    // ── 1. Supabase Data & Real-Time Sync ──
+    let supabaseChannel = null;
+    if (isSupabaseConfigured() && supabase) {
+      supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.uid)
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            setProjects(data.map(normalizeProject));
+            setLoading(false);
+          }
+        });
+
+      supabaseChannel = supabase
+        .channel('realtime_my_projects')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'projects', filter: `user_id=eq.${user.uid}` },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const item = normalizeProject(payload.new);
+              setProjects(prev => [item, ...prev.filter(p => p.id !== item.id)]);
+            } else if (payload.eventType === 'UPDATE') {
+              const item = normalizeProject(payload.new);
+              setProjects(prev => prev.map(p => p.id === item.id ? item : p));
+            } else if (payload.eventType === 'DELETE') {
+              setProjects(prev => prev.filter(p => p.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    // ── 2. Firestore Fallback / Dual Real-Time Sync ──
     const qUid = query(
       collection(db, 'projects'),
       where('userId', '==', user.uid)
@@ -34,30 +84,41 @@ const MyProjects = ({ user }) => {
     const unsubUid = onSnapshot(
       qUid,
       (querySnapshot) => {
-        const list = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        list.sort((a, b) => getSortTime(b.createdAt) - getSortTime(a.createdAt));
-        setProjects(list);
-        setLoading(false);
+        if (!isSupabaseConfigured() || !supabase) {
+          const list = querySnapshot.docs.map(d => normalizeProject({ id: d.id, ...d.data() }));
+          list.sort((a, b) => getSortTime(b.createdAt) - getSortTime(a.createdAt));
+          setProjects(list);
+          setLoading(false);
+        }
       },
       (error) => {
-        console.error("Error fetching projects by UID:", error);
+        console.warn("Firestore projects listener status:", error?.message);
         setLoading(false);
       }
     );
 
     return () => {
       unsubUid();
+      if (supabaseChannel && supabase) {
+        supabase.removeChannel(supabaseChannel);
+      }
     };
   }, [user]);
 
   const handleDelete = async (e, projectId) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this project?")) return;
+
+    // Optimistically remove immediately from UI
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+
     try {
+      if (isSupabaseConfigured() && supabase) {
+        await supabase.from('projects').delete().eq('id', projectId);
+      }
       await deleteDoc(doc(db, 'projects', projectId));
     } catch (err) {
       console.error("Failed to delete project:", err);
-      alert(`Could not delete project: ${err.message || err}`);
     }
   };
 

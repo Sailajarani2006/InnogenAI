@@ -1,5 +1,6 @@
 import { db, auth } from './firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 const GROQ_API_KEY = import.meta.env?.VITE_GROQ_API_KEY || "";
 
@@ -127,6 +128,44 @@ export const generateApp = async (idea, userOrId) => {
           deployment: 'Docker'
         }
       };
+
+      // Save project to Supabase if configured
+      if (isSupabaseConfigured() && supabase) {
+        try {
+          const supabaseRow = {
+            id: projectId,
+            user_id: userId || "",
+            user_email: userEmail || "",
+            title: generatedContent.name || idea,
+            name: generatedContent.name || idea,
+            description: generatedContent.description || `Generated application for ${idea}`,
+            prompt: idea,
+            status: "COMPLETE",
+            created_at: now,
+            updated_at: now,
+            features: Array.isArray(generatedContent.tags) ? generatedContent.tags : ['HTML/CSS/JS', 'Python FastAPI', 'SQL'],
+            tags: Array.isArray(generatedContent.tags) ? generatedContent.tags : ['HTML/CSS/JS', 'Python FastAPI', 'SQL'],
+            github_repo: "",
+            has_code: true,
+            generated_code: {
+              readme: generatedContent.readme || "",
+              frontendCode: generatedContent.frontendCode || "",
+              backendCode: generatedContent.backendCode || "",
+              databaseSchema: generatedContent.databaseSchema || ""
+            },
+            tech_stack: {
+              frontend: (generatedContent.tags && generatedContent.tags[0]) || 'HTML/CSS/JS',
+              backend: (generatedContent.tags && generatedContent.tags[1]) || 'Python FastAPI',
+              database: 'SQLite',
+              deployment: 'Docker'
+            }
+          };
+          const { error: sbErr } = await supabase.from('projects').upsert(supabaseRow, { onConflict: 'id' });
+          if (sbErr) console.warn("Supabase save notice:", sbErr.message);
+        } catch (sbEx) {
+          console.warn("Supabase save error:", sbEx);
+        }
+      }
 
       try {
         await setDoc(projectRef, projectData);

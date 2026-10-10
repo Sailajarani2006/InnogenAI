@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { motion } from 'framer-motion';
@@ -20,6 +21,30 @@ const ProjectView = ({ user }) => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
+        if (isSupabaseConfigured() && supabase) {
+          const { data: sbData, error: sbError } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+          if (!sbError && sbData) {
+            setProject({
+              ...sbData,
+              title: sbData.title || sbData.name,
+              createdAt: sbData.created_at,
+              updatedAt: sbData.updated_at,
+              userId: sbData.user_id,
+              userEmail: sbData.user_email,
+              githubRepo: sbData.github_repo,
+              hasCode: sbData.has_code,
+              generatedCode: sbData.generated_code,
+              techStack: sbData.tech_stack
+            });
+            return;
+          }
+        }
+
         const docRef = doc(db, 'projects', id);
         const docSnap = await getDoc(docRef);
 

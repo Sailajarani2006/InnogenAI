@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -28,78 +29,56 @@ class ProjectRepositoryImpl @Inject constructor(
 
     private val gson = Gson()
 
-    override fun getProjects(userId: String): Flow<List<Project>> = callbackFlow {
+    private var activeSyncUserId: String? = null
+    private var activeSyncListener: com.google.firebase.firestore.ListenerRegistration? = null
+
+    override fun getProjects(userId: String): Flow<List<Project>> {
         val currentAuthUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         val effectiveUserId = if (userId.isNotBlank()) userId else currentAuthUid
 
-        // 1. Instantly emit cached projects from Room DB (zero latency initial render)
-        try {
-            val cachedEntities = if (effectiveUserId.isNotBlank()) {
-                projectDao.getProjectsByUserOnce(effectiveUserId)
-            } else {
-                projectDao.getAllProjectsOnce()
-            }
-            if (cachedEntities.isNotEmpty()) {
-                trySend(cachedEntities.map { it.toDomain() })
-            }
-        } catch (e: Exception) {
-            Log.w("ProjectRepository", "Room cache pre-fetch notice: ${e.message}")
+        if (effectiveUserId.isNotBlank()) {
+            startRealtimeRemoteSync(effectiveUserId)
         }
 
-        if (effectiveUserId.isBlank()) {
-            awaitClose { }
-            return@callbackFlow
+        return projectDao.getProjectsByUser(effectiveUserId).map { list ->
+            list.map { it.toDomain() }
         }
+    }
 
-        // 2. Real-Time Firestore Snapshot Listener - Updates in milliseconds when Web or App creates/updates/deletes
-        val listener = firestore.collection("projects")
-            .whereEqualTo("userId", effectiveUserId)
+    private fun startRealtimeRemoteSync(userId: String) {
+        if (activeSyncUserId == userId && activeSyncListener != null) return
+
+        activeSyncListener?.remove()
+        activeSyncUserId = userId
+
+        activeSyncListener = firestore.collection("projects")
+            .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e("ProjectRepository", "Firestore real-time sync error: ${error.message}", error)
-                    return@addSnapshotListener
-                }
+                if (error != null || snapshot == null) return@addSnapshotListener
 
-                if (snapshot != null) {
-                    val projectsList = mutableListOf<Project>()
+                CoroutineScope(Dispatchers.IO).launch {
                     val firestoreDocIds = mutableSetOf<String>()
-
                     for (doc in snapshot.documents) {
                         try {
                             firestoreDocIds.add(doc.id)
-                            val entity = parseDocumentToEntity(doc, effectiveUserId)
-                            projectsList.add(entity.toDomain())
-
-                            // Update Room DB cache in background
-                            CoroutineScope(Dispatchers.IO).launch {
-                                projectDao.upsertProject(entity)
-                            }
+                            val entity = parseDocumentToEntity(doc, userId)
+                            projectDao.upsertProject(entity)
                         } catch (e: Exception) {
-                            Log.w("ProjectRepository", "Failed to parse Firestore doc ${doc.id}: ${e.message}")
+                            Log.w("ProjectRepository", "Error parsing remote project: ${e.message}")
                         }
                     }
 
-                    // Clean up locally if deleted remotely
+                    // Remove local projects that were deleted remotely
                     if (!snapshot.metadata.hasPendingWrites()) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val localIds = projectDao.getAllIdsForUser(effectiveUserId)
-                            for (localId in localIds) {
-                                if (!firestoreDocIds.contains(localId)) {
-                                    projectDao.deleteProject(localId)
-                                }
+                        val localIds = projectDao.getAllIdsForUser(userId)
+                        for (localId in localIds) {
+                            if (!firestoreDocIds.contains(localId)) {
+                                projectDao.deleteProject(localId)
                             }
                         }
                     }
-
-                    // Sort newest first
-                    projectsList.sortByDescending { it.createdAt }
-                    trySend(projectsList)
                 }
             }
-
-        awaitClose {
-            listener.remove()
-        }
     }
 
     private fun parseDocumentToEntity(doc: DocumentSnapshot, fallbackUserId: String): ProjectEntity {

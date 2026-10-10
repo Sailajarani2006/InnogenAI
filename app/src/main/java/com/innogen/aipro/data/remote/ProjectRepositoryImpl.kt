@@ -10,27 +10,59 @@ import com.innogen.aipro.data.local.dao.ProjectDao
 import com.innogen.aipro.data.local.entities.ProjectEntity
 import com.innogen.aipro.data.local.entities.toDomain
 import com.innogen.aipro.data.local.entities.toEntity
+import com.innogen.aipro.data.remote.supabase.SupabaseApiService
+import com.innogen.aipro.data.remote.supabase.SupabaseProjectDto
+import com.innogen.aipro.data.remote.supabase.SupabaseRealtimeManager
 import com.innogen.aipro.domain.model.Project
 import com.innogen.aipro.domain.repository.ProjectRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class ProjectRepositoryImpl @Inject constructor(
-    private val projectDao: ProjectDao,
-    private val firestore : FirebaseFirestore
+    private val projectDao       : ProjectDao,
+    private val firestore        : FirebaseFirestore,
+    private val supabaseApi      : SupabaseApiService,
+    private val supabaseRealtime : SupabaseRealtimeManager
 ) : ProjectRepository {
 
     private val gson = Gson()
 
     private var activeSyncUserId: String? = null
     private var activeSyncListener: com.google.firebase.firestore.ListenerRegistration? = null
+
+    init {
+        // Setup Supabase Real-Time WebSocket listeners
+        supabaseRealtime.onProjectUpserted = { dto ->
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val entity = dto.toProjectEntity()
+                    projectDao.upsertProject(entity)
+                    Log.d("ProjectRepository", "Realtime Supabase project upserted: ${dto.id}")
+                } catch (e: Exception) {
+                    Log.w("ProjectRepository", "Failed to handle Supabase upsert: ${e.message}")
+                }
+            }
+        }
+
+        supabaseRealtime.onProjectDeleted = { deletedId ->
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    projectDao.deleteProject(deletedId)
+                    Log.d("ProjectRepository", "Realtime Supabase project deleted: $deletedId")
+                } catch (e: Exception) {
+                    Log.w("ProjectRepository", "Failed to handle Supabase delete: ${e.message}")
+                }
+            }
+        }
+
+        // Connect WebSocket
+        supabaseRealtime.connect()
+    }
 
     override fun getProjects(userId: String): Flow<List<Project>> {
         val currentAuthUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
@@ -51,6 +83,23 @@ class ProjectRepositoryImpl @Inject constructor(
         activeSyncListener?.remove()
         activeSyncUserId = userId
 
+        // 1. Initial sync with Supabase PostgREST
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val res = supabaseApi.getProjects(userFilter = "eq.$userId")
+                if (res.isSuccessful && res.body() != null) {
+                    val supabaseProjects = res.body()!!
+                    for (sp in supabaseProjects) {
+                        projectDao.upsertProject(sp.toProjectEntity())
+                    }
+                    Log.d("ProjectRepository", "Synced ${supabaseProjects.size} projects from Supabase")
+                }
+            } catch (e: Exception) {
+                Log.w("ProjectRepository", "Supabase initial fetch notice: ${e.message}")
+            }
+        }
+
+        // 2. Dual sync with Firestore
         activeSyncListener = firestore.collection("projects")
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
@@ -175,8 +224,23 @@ class ProjectRepositoryImpl @Inject constructor(
         // 1. Save locally to Room DB immediately (instant, offline-ready)
         projectDao.upsertProject(updatedProject.toEntity())
 
-        // 2. Sync to Firestore in real time
+        // 2. Sync to Supabase in background
         if (effectiveUserId.isNotBlank()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val dto = updatedProject.toSupabaseDto(userEmail)
+                    val res = supabaseApi.upsertProject(project = dto)
+                    if (res.isSuccessful) {
+                        Log.d("ProjectRepository", "Successfully synced project to Supabase: ${updatedProject.id}")
+                    } else {
+                        Log.w("ProjectRepository", "Supabase upsert code: ${res.code()}")
+                    }
+                } catch (e: Exception) {
+                    Log.w("ProjectRepository", "Supabase sync notice: ${e.message}")
+                }
+            }
+
+            // 3. Sync to Firestore in background
             try {
                 val data = mutableMapOf<String, Any>(
                     "id"          to updatedProject.id,
@@ -229,7 +293,20 @@ class ProjectRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteProject(id: String) {
+        // 1. Delete locally from Room DB immediately
         projectDao.deleteProject(id)
+
+        // 2. Delete from Supabase
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                supabaseApi.deleteProject(idFilter = "eq.$id")
+                Log.d("ProjectRepository", "Deleted project from Supabase: $id")
+            } catch (e: Exception) {
+                Log.w("ProjectRepository", "Supabase delete notice: ${e.message}")
+            }
+        }
+
+        // 3. Delete from Firestore
         try {
             firestore.collection("projects").document(id).delete().await()
             Log.d("ProjectRepository", "Deleted project from Firestore: $id")
@@ -242,6 +319,19 @@ class ProjectRepositoryImpl @Inject constructor(
         val effectiveUserId = if (userId.isNotBlank()) userId else (FirebaseAuth.getInstance().currentUser?.uid ?: "")
         if (effectiveUserId.isBlank()) return
 
+        // Supabase sync
+        try {
+            val res = supabaseApi.getProjects(userFilter = "eq.$effectiveUserId")
+            if (res.isSuccessful && res.body() != null) {
+                for (sp in res.body()!!) {
+                    projectDao.upsertProject(sp.toProjectEntity())
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("ProjectRepository", "Supabase one-shot sync notice: ${e.message}")
+        }
+
+        // Firestore sync
         try {
             val snapshot = firestore.collection("projects")
                 .whereEqualTo("userId", effectiveUserId)
@@ -254,5 +344,64 @@ class ProjectRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.w("ProjectRepository", "One-shot Firestore sync failed: ${e.message}")
         }
+    }
+
+    private fun SupabaseProjectDto.toProjectEntity(): ProjectEntity {
+        val genCodeJson = if (generatedCode != null) gson.toJson(generatedCode) else null
+        val techStackJson = if (techStack != null) gson.toJson(techStack) else null
+        return ProjectEntity(
+            id            = id,
+            userId        = userId,
+            title         = title,
+            description   = description ?: "",
+            prompt        = prompt ?: title,
+            status        = status,
+            createdAt     = createdAt,
+            updatedAt     = updatedAt,
+            generatedCode = genCodeJson,
+            techStack     = techStackJson,
+            githubRepo    = githubRepo ?: "",
+            features      = gson.toJson(features)
+        )
+    }
+
+    private fun Project.toSupabaseDto(userEmail: String): SupabaseProjectDto {
+        val genCodeMap = generatedCode?.let {
+            mapOf(
+                "frontendCode"   to it.frontendCode,
+                "backendCode"    to it.backendCode,
+                "databaseSchema" to it.databaseSchema,
+                "dockerConfig"   to it.dockerConfig,
+                "readme"         to it.readme,
+                "apiDocs"        to it.apiDocs,
+                "testCases"      to it.testCases
+            )
+        }
+        val techStackMap = techStack?.let {
+            mapOf(
+                "frontend"   to it.frontend,
+                "backend"    to it.backend,
+                "database"   to it.database,
+                "deployment" to it.deployment
+            )
+        }
+        return SupabaseProjectDto(
+            id            = id,
+            userId        = userId,
+            userEmail     = userEmail,
+            title         = title,
+            name          = title,
+            description   = description,
+            prompt        = prompt,
+            status        = status.name,
+            createdAt     = createdAt,
+            updatedAt     = updatedAt,
+            features      = features,
+            tags          = features,
+            generatedCode = genCodeMap,
+            techStack     = techStackMap,
+            githubRepo    = githubRepo,
+            hasCode       = (generatedCode != null)
+        )
     }
 }

@@ -78,6 +78,18 @@ object AppModule {
     fun provideGitHubOAuthService(@Named("github_oauth") retrofit: Retrofit): GitHubOAuthService =
         retrofit.create(GitHubOAuthService::class.java)
 
+    // Supabase API
+    @Provides @Singleton @Named("supabase")
+    fun provideSupabaseRetrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .baseUrl(com.innogen.aipro.data.remote.supabase.SupabaseConfig.BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    @Provides @Singleton
+    fun provideSupabaseApiService(@Named("supabase") retrofit: Retrofit): com.innogen.aipro.data.remote.supabase.SupabaseApiService =
+        retrofit.create(com.innogen.aipro.data.remote.supabase.SupabaseApiService::class.java)
+
     // Firebase
     @Provides @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
